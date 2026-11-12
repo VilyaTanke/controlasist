@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "test": "node -e \"console.log('OK')\""
+    "test": "node scripts/test.js"
   },
   "keywords": [
     "iglesia",

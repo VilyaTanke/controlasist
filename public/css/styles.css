@@ -720,6 +720,34 @@ textarea.form-control {
   color: var(--text-muted);
 }
 
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 0.4rem 0;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: #e2e8f0;
+  border: none;
+  font-size: 0.75rem;
+  color: #475569;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.clear-search-btn:hover {
+  background-color: #cbd5e1;
+  color: #0f172a;
+}
+
 /* Data Table */
 .table-responsive {
   width: 100%;

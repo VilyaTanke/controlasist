@@ -33,9 +33,20 @@ jobs:
               cd $APP_DIR
             else
               cd $APP_DIR
+              echo "Asegurando respaldo de base de datos antes de sincronizar..."
+              mkdir -p data
+              if [ -f "data/control_nvsr.db" ]; then
+                cp data/control_nvsr.db /tmp/control_nvsr_deploy_backup.db
+              fi
+
               echo "Descargando últimos cambios de main..."
               git fetch origin main
               git reset --hard origin/main
+
+              if [ ! -f "data/control_nvsr.db" ] && [ -f "/tmp/control_nvsr_deploy_backup.db" ]; then
+                echo "Restaurando base de datos persistente..."
+                cp /tmp/control_nvsr_deploy_backup.db data/control_nvsr.db
+              fi
             fi
 
             # Asegurar persistencia del directorio de base de datos SQLite
@@ -49,6 +60,9 @@ jobs:
             echo "Instalando dependencias de producción..."
             npm ci --omit=dev
             npm rebuild better-sqlite3
+
+            echo "Ejecutando pruebas de integridad y calidad..."
+            npm test
 
             echo "Reiniciando / recargando proceso con PM2..."
             if pm2 describe checknvsr > /dev/null 2>&1; then

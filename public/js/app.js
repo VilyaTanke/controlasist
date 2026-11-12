@@ -87,6 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${y}-${m}-${d}T${h}:${min}`;
   }
 
+  // Format local date only: "YYYY-MM-DD"
+  function getLocalDateString(date = new Date()) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
   // Set default current time in registration form
   function resetDateTimeInput() {
     if (inputFechaHora) {
@@ -192,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.filters.tipo && state.filters.tipo !== 'todos') params.append('tipo', state.filters.tipo);
 
       if (state.filters.dateFilter === 'hoy') {
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayStr = getLocalDateString();
         params.append('dateFrom', `${todayStr} 00:00:00`);
         params.append('dateTo', `${todayStr} 23:59:59`);
       }
@@ -221,11 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function formatWhatsAppLink(phone, name) {
     if (!phone) return null;
     let clean = phone.replace(/\D/g, '');
-    if (clean.length === 9) {
-      // Spain mobile without country code
+    if (clean.startsWith('00')) clean = clean.slice(2);
+    if (clean.length === 9 && (clean.startsWith('6') || clean.startsWith('7'))) {
       clean = '34' + clean;
     }
-    const message = encodeURIComponent(`¡Hola ${name || ''}! Te saludamos cordialmente de la Iglesia Nueva Vida de Soto del Real. Nos alegramos de tenerte con nosotros.`);
+    if (clean.length < 9) return null;
+    const firstName = name ? name.trim().split(' ')[0] : '';
+    const greeting = firstName ? `¡Hola ${firstName}!` : '¡Hola!';
+    const message = encodeURIComponent(`${greeting} Te saludamos cordialmente de la Iglesia Nueva Vida de Soto del Real. Nos alegramos de tenerte con nosotros.`);
     return `https://wa.me/${clean}?text=${message}`;
   }
 
@@ -388,6 +397,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let searchTimeout;
   searchInput.addEventListener('input', (e) => {
+    if (clearSearchBtn) {
+      clearSearchBtn.style.display = e.target.value ? 'flex' : 'none';
+    }
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       state.filters.search = e.target.value;
@@ -398,8 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (clearSearchBtn) {
     clearSearchBtn.addEventListener('click', () => {
       searchInput.value = '';
+      clearSearchBtn.style.display = 'none';
       state.filters.search = '';
       fetchPersonas();
+      searchInput.focus();
     });
   }
 
@@ -441,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.filters.search) params.append('search', state.filters.search);
     if (state.filters.tipo && state.filters.tipo !== 'todos') params.append('tipo', state.filters.tipo);
     if (state.filters.dateFilter === 'hoy') {
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getLocalDateString();
       params.append('dateFrom', `${todayStr} 00:00:00`);
       params.append('dateTo', `${todayStr} 23:59:59`);
     }
@@ -454,6 +468,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnExportOriginal.addEventListener('click', () => downloadExcel('original'));
   btnExportFull.addEventListener('click', () => downloadExcel('full'));
+
+  const btnBackupDb = document.getElementById('btnBackupDb');
+  if (btnBackupDb) {
+    btnBackupDb.addEventListener('click', () => {
+      exportDropdown.classList.remove('open');
+      showToast('Descargando copia de seguridad (.db)...', 'success');
+    });
+  }
 
   // --- EDIT MODAL ---
 

@@ -412,34 +412,72 @@ async function parseUploadedExcel(buffer) {
   if (!colMap.consolidado) colMap.consolidado = 6; // F
 
   const now = new Date();
-  const formatISO = (d) => d.toISOString().slice(0, 19).replace('T', ' ');
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatLocalTimestamp = (d) => {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+
+  const normalizeDateStr = (val, isOnlyDate = false) => {
+    if (!val) return null;
+    const str = String(val).trim();
+    // Match DD/MM/YYYY or DD-MM-YYYY
+    const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dmyMatch) {
+      return `${dmyMatch[3]}-${pad(dmyMatch[2])}-${pad(dmyMatch[1])}`;
+    }
+    return str;
+  };
 
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber <= headerRowIndex) return; // Skip headers
 
-    const getVal = (col) => {
+    const getVal = (col, isOnlyDate = false) => {
       if (!col) return '';
       const cell = row.getCell(col);
       if (!cell || cell.value === null || cell.value === undefined) return '';
-      if (typeof cell.value === 'object' && cell.value.text) return cell.value.text.trim();
+
+      // Handle ExcelJS Date object
+      if (cell.value instanceof Date) {
+        const d = cell.value;
+        if (isOnlyDate) {
+          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        }
+        return formatLocalTimestamp(d);
+      }
+
+      // Handle Excel formulas and rich text
+      if (typeof cell.value === 'object') {
+        if (cell.value.result !== undefined) {
+          return String(cell.value.result).trim();
+        }
+        if (cell.value.text) {
+          return cell.value.text.trim();
+        }
+        if (Array.isArray(cell.value.richText)) {
+          return cell.value.richText.map(t => t.text).join('').trim();
+        }
+      }
+
       return String(cell.value).trim();
     };
 
     const nombre = getVal(colMap.nombre);
-    if (!nombre || nombre.toLowerCase() === 'nombres') return; // Skip blank or repeated headers
+    if (!nombre || nombre.toLowerCase() === 'nombres' || nombre.toLowerCase() === 'nombre') return; // Skip blank or repeated headers
 
     const telefono = getVal(colMap.telefono);
     const direccion = getVal(colMap.direccion);
-    const cumpleanos = getVal(colMap.cumpleanos);
+    const rawCumpleanos = getVal(colMap.cumpleanos, true);
+    const cumpleanos = normalizeDateStr(rawCumpleanos, true);
     const nuevoVal = getVal(colMap.nuevo).toUpperCase();
     const consVal = getVal(colMap.consolidado).toUpperCase();
-    const fechaVal = getVal(colMap.fecha);
+    const rawFecha = getVal(colMap.fecha);
+    const fechaVal = normalizeDateStr(rawFecha);
     const notas = getVal(colMap.notas);
 
     let tipo = 'nuevo';
-    if (consVal === 'X' || consVal === 'SI' || consVal === 'SÍ' || consVal === '1' || consVal === 'TRUE') {
+    if (consVal === 'X' || consVal === 'SI' || consVal === 'SÍ' || consVal === '1' || consVal === 'TRUE' || consVal === 'CONSOLIDADO') {
       tipo = 'consolidado';
-    } else if (nuevoVal === 'X' || nuevoVal === 'SI' || nuevoVal === 'SÍ' || nuevoVal === '1' || nuevoVal === 'TRUE') {
+    } else if (nuevoVal === 'X' || nuevoVal === 'SI' || nuevoVal === 'SÍ' || nuevoVal === '1' || nuevoVal === 'TRUE' || nuevoVal === 'NUEVO') {
       tipo = 'nuevo';
     }
 
@@ -449,7 +487,7 @@ async function parseUploadedExcel(buffer) {
       direccion: direccion || null,
       cumpleanos: cumpleanos || null,
       tipo,
-      fecha_hora_registro: fechaVal || formatISO(now),
+      fecha_hora_registro: fechaVal || formatLocalTimestamp(new Date()),
       notas: notas || null
     });
   });

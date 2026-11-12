@@ -280,6 +280,16 @@
                     <div class="dropdown-item-desc">Incluye Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, etc.</div>
                   </div>
                 </button>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download title="Descargar archivo .db de SQLite">
+                  <span style="font-size: 1.25rem;">💾</span>
+                  <div>
+                    <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
+                    <div class="dropdown-item-desc">Descarga íntegra de la base de datos SQLite</div>
+                  </div>
+                </a>
               </div>
             </div>
 
@@ -304,7 +314,9 @@
                     id="searchInput"
                     class="form-control"
                     placeholder="Buscar por nombre, teléfono, dirección..."
+                    autocomplete="off"
                   >
+                  <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda" style="display: none;">✕</button>
                 </div>
               </div>
 

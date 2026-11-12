@@ -9,10 +9,13 @@ const { generateExcel, parseUploadedExcel } = require('./excelService');
 const app = express();
 const PORT = process.env.PORT || 3005;
 
+// Production hardening: disable Express banner
+app.disable('x-powered-by');
+
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Multer in-memory storage for Excel file imports
@@ -22,6 +25,42 @@ const upload = multer({
 });
 
 // --- API ROUTES ---
+
+// Health check endpoint for uptime and monitoring
+app.get('/api/health', (req, res) => {
+  try {
+    const stats = db.getStats();
+    res.json({
+      status: 'ok',
+      uptime: Math.floor(process.uptime()),
+      timestamp: db.getLocalTimestamp(),
+      database: 'connected',
+      recordsCount: stats.total
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Backup SQLite Database Download
+app.get('/api/backup', (req, res) => {
+  try {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+    const filename = `control_nvsr_backup_${dateStr}.db`;
+
+    res.download(db.dbPath, filename, (err) => {
+      if (err && !res.headersSent) {
+        console.error('Error al descargar copia de seguridad:', err);
+        res.status(500).json({ error: 'Error al descargar la base de datos' });
+      }
+    });
+  } catch (error) {
+    console.error('Error en backup:', error);
+    res.status(500).json({ error: 'Error al generar copia de seguridad' });
+  }
+});
 
 // 1. Get church institutional information
 app.get('/api/church-info', (req, res) => {
@@ -59,7 +98,12 @@ app.get('/api/personas', (req, res) => {
 // 4. Get persona by ID
 app.get('/api/personas/:id', (req, res) => {
   try {
-    const persona = db.getById(req.params.id);
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de registro inválido' });
+    }
+
+    const persona = db.getById(id);
     if (!persona) {
       return res.status(404).json({ error: 'Registro no encontrado' });
     }
@@ -79,23 +123,27 @@ app.post('/api/personas', (req, res) => {
       return res.status(400).json({ error: 'El nombre es obligatorio' });
     }
 
+    if (nombre.trim().length > 150) {
+      return res.status(400).json({ error: 'El nombre no puede exceder 150 caracteres' });
+    }
+
     if (!tipo || !['nuevo', 'consolidado'].includes(tipo)) {
       return res.status(400).json({ error: 'El tipo debe ser "nuevo" o "consolidado"' });
     }
 
-    // Default to current date/time if not provided
+    // Default to local date/time if not provided
     const fechaHora = fecha_hora_registro && fecha_hora_registro.trim()
       ? fecha_hora_registro.trim()
-      : new Date().toISOString().slice(0, 19).replace('T', ' ');
+      : db.getLocalTimestamp();
 
     const newPersona = db.create({
-      nombre,
-      telefono,
-      direccion,
-      cumpleanos,
+      nombre: nombre.trim(),
+      telefono: telefono ? telefono.trim() : null,
+      direccion: direccion ? direccion.trim() : null,
+      cumpleanos: cumpleanos ? cumpleanos.trim() : null,
       tipo,
       fecha_hora_registro: fechaHora,
-      notas
+      notas: notas ? notas.trim() : null
     });
 
     res.status(201).json(newPersona);
@@ -108,7 +156,11 @@ app.post('/api/personas', (req, res) => {
 // 6. Update persona
 app.put('/api/personas/:id', (req, res) => {
   try {
-    const id = req.params.id;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de registro inválido' });
+    }
+
     const existing = db.getById(id);
     if (!existing) {
       return res.status(404).json({ error: 'Registro no encontrado' });
@@ -120,18 +172,22 @@ app.put('/api/personas/:id', (req, res) => {
       return res.status(400).json({ error: 'El nombre es obligatorio' });
     }
 
+    if (nombre.trim().length > 150) {
+      return res.status(400).json({ error: 'El nombre no puede exceder 150 caracteres' });
+    }
+
     if (!tipo || !['nuevo', 'consolidado'].includes(tipo)) {
       return res.status(400).json({ error: 'El tipo debe ser "nuevo" o "consolidado"' });
     }
 
     const updated = db.update(id, {
-      nombre,
-      telefono,
-      direccion,
-      cumpleanos,
+      nombre: nombre.trim(),
+      telefono: telefono ? telefono.trim() : null,
+      direccion: direccion ? direccion.trim() : null,
+      cumpleanos: cumpleanos ? cumpleanos.trim() : null,
       tipo,
       fecha_hora_registro: fecha_hora_registro || existing.fecha_hora_registro,
-      notas
+      notas: notas ? notas.trim() : null
     });
 
     res.json(updated);
@@ -144,7 +200,11 @@ app.put('/api/personas/:id', (req, res) => {
 // 7. Delete persona
 app.delete('/api/personas/:id', (req, res) => {
   try {
-    const id = req.params.id;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de registro inválido' });
+    }
+
     const result = db.remove(id);
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Registro no encontrado' });
@@ -165,7 +225,8 @@ app.get('/api/export/excel', async (req, res) => {
     const workbook = await generateExcel(personas, format);
 
     const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10);
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     const suffix = format === 'original' ? 'Plantilla_Original' : 'Completo';
     const filename = `Control_Asistencia_NVSR_${suffix}_${dateStr}.xlsx`;
 
@@ -192,11 +253,8 @@ app.post('/api/import/excel', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'No se encontraron registros válidos en el archivo' });
     }
 
-    let insertedCount = 0;
-    for (const record of records) {
-      db.create(record);
-      insertedCount++;
-    }
+    // High performance bulk insertion inside single transaction
+    const insertedCount = db.createMany(records);
 
     res.json({
       success: true,

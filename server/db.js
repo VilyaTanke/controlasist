@@ -88,6 +88,18 @@ if (count === 0) {
   }
 }
 
+// Helper for local timestamp string: YYYY-MM-DD HH:mm:ss
+const getLocalTimestamp = (date = new Date()) => {
+  const pad = (n) => String(n).padStart(2, '0');
+  const y = date.getFullYear();
+  const m = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const h = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  const s = pad(date.getSeconds());
+  return `${y}-${m}-${d} ${h}:${min}:${s}`;
+};
+
 // Queries
 const getAll = (filters = {}) => {
   let query = 'SELECT * FROM personas WHERE 1=1';
@@ -110,8 +122,12 @@ const getAll = (filters = {}) => {
   }
 
   if (filters.dateTo) {
+    let dateToVal = filters.dateTo.trim();
+    if (dateToVal.length === 10) {
+      dateToVal += ' 23:59:59';
+    }
     query += ' AND fecha_hora_registro <= ?';
-    params.push(filters.dateTo);
+    params.push(dateToVal);
   }
 
   query += ' ORDER BY fecha_hora_registro DESC, id DESC';
@@ -130,17 +146,41 @@ const create = (data) => {
   `);
 
   const result = stmt.run(
-    data.nombre.trim(),
-    data.telefono ? data.telefono.trim() : null,
-    data.direccion ? data.direccion.trim() : null,
-    data.cumpleanos ? data.cumpleanos.trim() : null,
-    data.tipo,
-    data.fecha_hora_registro,
-    data.notas ? data.notas.trim() : null
+    data.nombre ? data.nombre.trim().slice(0, 150) : '',
+    data.telefono ? data.telefono.trim().slice(0, 30) : null,
+    data.direccion ? data.direccion.trim().slice(0, 250) : null,
+    data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
+    ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo',
+    data.fecha_hora_registro || getLocalTimestamp(),
+    data.notas ? data.notas.trim().slice(0, 2000) : null
   );
 
   return getById(result.lastInsertRowid);
 };
+
+// Batch insert inside a single SQLite transaction
+const createMany = db.transaction((records) => {
+  const stmt = db.prepare(`
+    INSERT INTO personas (nombre, telefono, direccion, cumpleanos, tipo, fecha_hora_registro, notas, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+  `);
+
+  let count = 0;
+  for (const data of records) {
+    if (!data.nombre || !data.nombre.trim()) continue;
+    stmt.run(
+      data.nombre.trim().slice(0, 150),
+      data.telefono ? data.telefono.trim().slice(0, 30) : null,
+      data.direccion ? data.direccion.trim().slice(0, 250) : null,
+      data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
+      ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo',
+      data.fecha_hora_registro || getLocalTimestamp(),
+      data.notas ? data.notas.trim().slice(0, 2000) : null
+    );
+    count++;
+  }
+  return count;
+});
 
 const update = (id, data) => {
   const stmt = db.prepare(`
@@ -157,13 +197,13 @@ const update = (id, data) => {
   `);
 
   stmt.run(
-    data.nombre.trim(),
-    data.telefono ? data.telefono.trim() : null,
-    data.direccion ? data.direccion.trim() : null,
-    data.cumpleanos ? data.cumpleanos.trim() : null,
-    data.tipo,
-    data.fecha_hora_registro,
-    data.notas ? data.notas.trim() : null,
+    data.nombre ? data.nombre.trim().slice(0, 150) : '',
+    data.telefono ? data.telefono.trim().slice(0, 30) : null,
+    data.direccion ? data.direccion.trim().slice(0, 250) : null,
+    data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
+    ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo',
+    data.fecha_hora_registro || getLocalTimestamp(),
+    data.notas ? data.notas.trim().slice(0, 2000) : null,
     id
   );
 
@@ -195,9 +235,12 @@ const getStats = () => {
 
 module.exports = {
   db,
+  dbPath,
+  getLocalTimestamp,
   getAll,
   getById,
   create,
+  createMany,
   update,
   remove,
   getStats
