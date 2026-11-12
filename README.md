@@ -112,3 +112,4 @@ ControlNVSR/
 ## 💾 Copias de Seguridad (Backups)
 
 Para respaldar todos los registros de la iglesia, solo necesitas copiar el archivo `data/control_nvsr.db` a una memoria USB o servicio en la nube (Google Drive, OneDrive, etc.). También puedes presionar el botón **Exportar a Excel** en cualquier momento para obtener una copia editable en formato de hoja de cálculo.
+
