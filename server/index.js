@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const os = require('os');
+const crypto = require('crypto');
 const db = require('./db');
 const { generateExcel, parseUploadedExcel } = require('./excelService');
 
@@ -17,6 +18,38 @@ app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Admin In-Memory Session Storage
+const adminSessions = new Map(); // token -> { user, createdAt }
+
+// Helper middleware to require admin authentication
+const requireAdminAuth = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = (authHeader && authHeader.startsWith('Bearer '))
+    ? authHeader.slice(7).trim()
+    : (req.headers['x-admin-token'] || req.query.adminToken);
+
+  if (token && adminSessions.has(token)) {
+    req.adminUser = adminSessions.get(token).user;
+    return next();
+  }
+
+  // Also support direct admin credentials in request body or headers
+  const adminUser = (req.body && req.body.adminUser) || req.headers['x-admin-user'];
+  const adminPassword = (req.body && req.body.adminPassword) || req.headers['x-admin-password'];
+
+  if (adminUser && adminPassword) {
+    const verified = db.verifyAdminCredentials(adminUser, adminPassword);
+    if (verified) {
+      req.adminUser = verified;
+      return next();
+    }
+  }
+
+  return res.status(401).json({
+    error: 'Autorización denegada: Se requieren credenciales de Administrador válidas'
+  });
+};
 
 // Multer in-memory storage for Excel file imports
 const upload = multer({
@@ -233,23 +266,127 @@ app.put('/api/personas/:id', (req, res) => {
   }
 });
 
-// 7. Delete persona
-app.delete('/api/personas/:id', (req, res) => {
+// 7. Delete persona (REQUIERE APROBACIÓN DE USUARIO ADMINISTRADOR)
+app.delete('/api/personas/:id', requireAdminAuth, (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id) || id <= 0) {
       return res.status(400).json({ error: 'ID de registro inválido' });
     }
 
+    const existing = db.getById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Registro no encontrado' });
+    }
+
     const result = db.remove(id);
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Registro no encontrado' });
     }
-    res.json({ success: true, message: 'Registro eliminado correctamente' });
+
+    res.json({
+      success: true,
+      message: `Registro eliminado correctamente con autorización del administrador "${req.adminUser.username}"`
+    });
   } catch (error) {
     console.error('Error al eliminar registro:', error);
     res.status(500).json({ error: 'Error al eliminar el registro' });
   }
+});
+
+// ========================================================
+// RUTAS DE GESTIÓN DE ADMINISTRADORES (PANEL ADMIN)
+// ========================================================
+
+// Login de Administrador
+app.post('/api/admin/login', (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Usuario y contraseña son requeridos' });
+    }
+
+    const user = db.verifyAdminCredentials(username, password);
+    if (!user) {
+      return res.status(401).json({ error: 'Usuario o contraseña de administrador incorrectos' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    adminSessions.set(token, { user, createdAt: Date.now() });
+
+    res.json({
+      success: true,
+      user,
+      token
+    });
+  } catch (error) {
+    console.error('Error en login de admin:', error);
+    res.status(500).json({ error: 'Error al procesar el inicio de sesión' });
+  }
+});
+
+// Verificar si el token actual de admin sigue válido
+app.get('/api/admin/verify', requireAdminAuth, (req, res) => {
+  res.json({
+    success: true,
+    user: req.adminUser
+  });
+});
+
+// Listar usuarios administradores (solo admin)
+app.get('/api/admin/users', requireAdminAuth, (req, res) => {
+  try {
+    const users = db.getAdminUsers();
+    res.json({ users });
+  } catch (error) {
+    console.error('Error al listar administradores:', error);
+    res.status(500).json({ error: 'Error al listar usuarios administradores' });
+  }
+});
+
+// Crear nuevo usuario administrador (solo admin)
+app.post('/api/admin/users', requireAdminAuth, (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const newUser = db.createAdminUser({ username, password });
+    res.status(201).json({
+      success: true,
+      message: `Administrador "${newUser.username}" creado con éxito`,
+      user: newUser
+    });
+  } catch (error) {
+    console.error('Error al crear administrador:', error);
+    res.status(400).json({ error: error.message || 'Error al crear el administrador' });
+  }
+});
+
+// Eliminar usuario administrador (solo admin)
+app.delete('/api/admin/users/:id', requireAdminAuth, (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de usuario inválido' });
+    }
+
+    db.deleteAdminUser(id);
+    res.json({ success: true, message: 'Usuario administrador eliminado correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar administrador:', error);
+    res.status(400).json({ error: error.message || 'Error al eliminar el administrador' });
+  }
+});
+
+// Cerrar sesión de administrador
+app.post('/api/admin/logout', (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = (authHeader && authHeader.startsWith('Bearer '))
+    ? authHeader.slice(7).trim()
+    : req.headers['x-admin-token'];
+
+  if (token) {
+    adminSessions.delete(token);
+  }
+  res.json({ success: true, message: 'Sesión de administrador cerrada' });
 });
 
 // 8. Export to Excel (.xlsx)

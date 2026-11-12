@@ -29,9 +29,16 @@
         </div>
 
         <div class="header-meta">
-          <div class="live-badge">
-            <span class="live-pulse"></span>
-            <span>Sistema Activo</span>
+          <div class="header-meta-row">
+            <div class="live-badge">
+              <span class="live-pulse"></span>
+              <span>Sistema Activo</span>
+            </div>
+            <button type="button" class="btn-admin-pill" id="btnOpenAdminPanel"
+              title="Panel de Gestión de Administradores">
+              <i class="fa-sharp-duotone fa-solid fa-user-shield"></i>
+              <span>Admin</span>
+            </button>
           </div>
           <div class="header-clock" id="headerClock">Cargando...</div>
         </div>
@@ -545,22 +552,213 @@
     </div>
   </div>
 
-  <!-- MODAL: Confirmar Eliminación -->
+  <!-- MODAL: Confirmar Eliminación con Aprobación de Administrador -->
   <div class="modal-overlay" id="deleteModal">
-    <div class="modal-content" style="max-width: 440px;">
+    <div class="modal-content modal-auth-delete" style="max-width: 460px;">
+      <div class="modal-header" style="border-bottom-color: #fee2e2;">
+        <div class="modal-title-box">
+          <span class="modal-header-icon" style="background-color: #fee2e2; color: #dc2626;">
+            <i class="fa-sharp-duotone fa-solid fa-shield-halved"></i>
+          </span>
+          <div>
+            <h3 style="color: #dc2626;">Aprobación de Eliminación</h3>
+            <p>Se requiere autorización de Administrador</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="closeDeleteModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="deleteAuthForm">
+        <div class="modal-body">
+          <div class="delete-warning-banner">
+            <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
+            <small style="color: #991b1b; display: block; margin-top: 0.35rem;">
+              <i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Esta acción eliminará el registro de la
+              lista de asistencias.
+            </small>
+          </div>
+
+          <!-- Campos de credenciales Admin para aprobar -->
+          <div class="admin-auth-box">
+            <div class="admin-auth-title">
+              <i class="fa-sharp-duotone fa-solid fa-lock"></i> Credenciales de Administrador
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label class="form-label" for="deleteAdminUser">Usuario Administrador <span
+                  class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
+                <input type="text" id="deleteAdminUser" class="form-control" placeholder="Ej: Pastora" value="Pastora"
+                  required autocomplete="username">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.25rem;">
+              <label class="form-label" for="deleteAdminPassword">Contraseña de Administrador <span
+                  class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
+                <input type="password" id="deleteAdminPassword" class="form-control"
+                  placeholder="Introduce la contraseña" required autocomplete="current-password">
+              </div>
+            </div>
+
+            <div class="admin-auth-error" id="deleteAuthError" style="display: none;"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
+          <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">
+            <i class="fa-sharp-duotone fa-solid fa-trash-can"></i> Aprobar y Eliminar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: PANEL DE ADMINISTRADORES                          -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal-content modal-admin" style="max-width: 520px;">
       <div class="modal-header">
-        <h3 style="color: #ef4444;"><i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Confirmar
-          Eliminación</h3>
+        <div class="modal-title-box">
+          <span class="modal-header-icon" style="background-color: #e0e7ff; color: #4338ca;">
+            <i class="fa-sharp-duotone fa-solid fa-user-shield"></i>
+          </span>
+          <div>
+            <h3>Panel de Administradores</h3>
+            <p>Gestión y creación exclusiva de usuarios Admin</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="closeAdminModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
+
       <div class="modal-body">
-        <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción eliminará el registro
-          de la lista de asistencias.</p>
+
+        <!-- VISTA 1: Login Admin (si no hay sesión activa) -->
+        <div id="adminLoginView" style="display: block;">
+          <div class="admin-login-notice">
+            <div class="admin-lock-circle">
+              <i class="fa-sharp-duotone fa-solid fa-shield-halved"></i>
+            </div>
+            <h4>Acceso Restringido</h4>
+            <p>Introduce las credenciales de un Administrador para gestionar el panel.</p>
+          </div>
+
+          <form id="adminLoginForm">
+            <div class="form-group">
+              <label class="form-label" for="loginAdminUser">Usuario Admin <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
+                <input type="text" id="loginAdminUser" class="form-control" placeholder="Ej: Pastora" value="Pastora"
+                  required autocomplete="username">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="loginAdminPass">Contraseña <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
+                <input type="password" id="loginAdminPass" class="form-control" placeholder="Introduce contraseña"
+                  required autocomplete="current-password">
+              </div>
+            </div>
+
+            <div class="admin-auth-error" id="adminLoginError" style="display: none;"></div>
+
+            <div style="margin-top: 1.25rem;">
+              <button type="submit" class="btn btn-primary" style="width: 100%;" id="btnLoginAdmin">
+                <i class="fa-sharp-duotone fa-solid fa-right-to-bracket"></i> Entrar al Panel Admin
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- VISTA 2: Dashboard de Administradores (con sesión activa) -->
+        <div id="adminDashboardView" style="display: none;">
+          <div class="admin-user-active-bar">
+            <div class="admin-active-info">
+              <i class="fa-sharp-duotone fa-solid fa-circle-check" style="color: #10b981;"></i>
+              <span>Sesión activa: <strong id="currentAdminName">Pastora</strong></span>
+              <span class="badge-status badge-consolidado"
+                style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Admin</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" id="btnLogoutAdmin" title="Cerrar sesión de admin">
+              <i class="fa-sharp-duotone fa-solid fa-arrow-right-from-bracket"></i> Salir
+            </button>
+          </div>
+
+          <!-- Listado de Administradores -->
+          <div class="admin-section-box">
+            <div class="admin-section-header">
+              <h4><i class="fa-sharp-duotone fa-solid fa-users-gear"></i> Administradores Registrados</h4>
+              <span id="adminCountBadge" class="today-pill pill-consolidado">1 Admin</span>
+            </div>
+            <div class="admin-list-container" id="adminUsersList">
+              <!-- Se llena dinámicamente con JS -->
+            </div>
+          </div>
+
+          <!-- Formulario para Crear Nuevo Administrador -->
+          <div class="admin-section-box" style="margin-top: 1.25rem;">
+            <div class="admin-section-header">
+              <h4><i class="fa-sharp-duotone fa-solid fa-user-plus"></i> Crear Nuevo Usuario Admin</h4>
+            </div>
+
+            <form id="createAdminForm">
+              <div class="form-group">
+                <label class="form-label" for="newAdminUser">Nombre de Usuario Admin <span
+                    class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
+                  <input type="text" id="newAdminUser" class="form-control" placeholder="Ej: Pastor Jorge" required
+                    autocomplete="off">
+                </div>
+                <small style="color: var(--text-muted); font-size: 0.72rem; margin-top: 0.25rem; display: block;">
+                  Mínimo 3 caracteres. Sólo tendrá rol de Administrador.
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="newAdminPass">Contraseña <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
+                  <input type="password" id="newAdminPass" class="form-control" placeholder="Mínimo 6 caracteres"
+                    required autocomplete="new-password">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="newAdminPassConfirm">Confirmar Contraseña <span
+                    class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
+                  <input type="password" id="newAdminPassConfirm" class="form-control"
+                    placeholder="Repite la contraseña" required autocomplete="new-password">
+                </div>
+              </div>
+
+              <div class="admin-auth-error" id="createAdminError" style="display: none;"></div>
+
+              <div style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-success" style="width: 100%;" id="btnSubmitNewAdmin">
+                  <i class="fa-sharp-duotone fa-solid fa-user-plus"></i> Registrar Usuario Admin
+                </button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+
       </div>
+
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><i
-            class="fa-sharp-duotone fa-solid fa-trash-can"></i> Sí, Eliminar</button>
+        <button type="button" class="btn btn-outline" id="closeAdminPanelBtn">Cerrar</button>
       </div>
     </div>
   </div>

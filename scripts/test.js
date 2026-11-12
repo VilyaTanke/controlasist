@@ -75,6 +75,30 @@ async function runTests() {
   if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Error en parseUploadedExcel');
   console.log('   Excel export/import roundtrip: OK');
 
+  // 7. Test Módulo de Usuarios Administradores
+  console.log('4. Probando sistema de autenticación y usuarios Admin...');
+  const pastoraAuth = db.verifyAdminCredentials('Pastora', '12345678');
+  if (!pastoraAuth || pastoraAuth.username !== 'Pastora') {
+    throw new Error('Fallo al autenticar usuario por defecto Pastora');
+  }
+  const badAuth = db.verifyAdminCredentials('Pastora', 'contraseña_erronea');
+  if (badAuth !== null) {
+    throw new Error('La autenticación no debe aceptar contraseñas erróneas');
+  }
+
+  // Probar creación de nuevo admin
+  db.db.prepare('DELETE FROM usuarios_admin WHERE username = ?').run('Admin CI Test');
+  const newAdmin = db.createAdminUser({ username: 'Admin CI Test', password: 'ciPassword123' });
+  if (!newAdmin || newAdmin.username !== 'Admin CI Test') {
+    throw new Error('Error al crear nuevo administrador');
+  }
+  const checkNewAdmin = db.verifyAdminCredentials('Admin CI Test', 'ciPassword123');
+  if (!checkNewAdmin) {
+    throw new Error('Error al autenticar el nuevo administrador creado');
+  }
+  db.deleteAdminUser(newAdmin.id);
+  console.log('   Autenticación y gestión Admin: OK');
+
   console.log('--- ✅ TODAS LAS PRUEBAS PASARON EXITOSAMENTE ---');
 }
 

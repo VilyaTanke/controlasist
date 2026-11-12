@@ -11,7 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     selectedPerson: null,
     editingId: null,
-    deleteId: null
+    deleteId: null,
+    admin: {
+      token: localStorage.getItem('control_nvsr_admin_token') || null,
+      user: JSON.parse(localStorage.getItem('control_nvsr_admin_user') || 'null'),
+      usersList: []
+    }
   };
 
   // --- DOM Elements ---
@@ -94,11 +99,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeEditModalBtn = document.getElementById('closeEditModalBtn');
   const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-  // --- MODAL: ELIMINAR ---
+  // --- MODAL: ELIMINAR CON AUTORIZACIÓN ADMIN ---
   const deleteModal = document.getElementById('deleteModal');
+  const deleteAuthForm = document.getElementById('deleteAuthForm');
+  const deletePersonName = document.getElementById('deletePersonName');
+  const deleteAdminUser = document.getElementById('deleteAdminUser');
+  const deleteAdminPassword = document.getElementById('deleteAdminPassword');
+  const deleteAuthError = document.getElementById('deleteAuthError');
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  const deletePersonName = document.getElementById('deletePersonName');
+  const closeDeleteModalBtn = document.getElementById('closeDeleteModalBtn');
+
+  // --- MODAL: PANEL DE ADMINISTRADORES ---
+  const adminModal = document.getElementById('adminModal');
+  const btnOpenAdminPanel = document.getElementById('btnOpenAdminPanel');
+  const closeAdminModalBtn = document.getElementById('closeAdminModalBtn');
+  const closeAdminPanelBtn = document.getElementById('closeAdminPanelBtn');
+
+  const adminLoginView = document.getElementById('adminLoginView');
+  const adminDashboardView = document.getElementById('adminDashboardView');
+  const adminLoginForm = document.getElementById('adminLoginForm');
+  const loginAdminUser = document.getElementById('loginAdminUser');
+  const loginAdminPass = document.getElementById('loginAdminPass');
+  const btnLoginAdmin = document.getElementById('btnLoginAdmin');
+  const adminLoginError = document.getElementById('adminLoginError');
+
+  const currentAdminName = document.getElementById('currentAdminName');
+  const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
+  const adminCountBadge = document.getElementById('adminCountBadge');
+  const adminUsersList = document.getElementById('adminUsersList');
+
+  const createAdminForm = document.getElementById('createAdminForm');
+  const newAdminUser = document.getElementById('newAdminUser');
+  const newAdminPass = document.getElementById('newAdminPass');
+  const newAdminPassConfirm = document.getElementById('newAdminPassConfirm');
+  const createAdminError = document.getElementById('createAdminError');
+  const btnSubmitNewAdmin = document.getElementById('btnSubmitNewAdmin');
 
   // --- MODAL: IMPORTAR EXCEL ---
   const importModal = document.getElementById('importModal');
@@ -862,34 +898,90 @@ document.addEventListener('DOMContentLoaded', () => {
   function openDeleteModal(id, name) {
     state.deleteId = id;
     deletePersonName.textContent = `"${name}"`;
+    if (deleteAdminPassword) deleteAdminPassword.value = '';
+    if (deleteAuthError) {
+      deleteAuthError.style.display = 'none';
+      deleteAuthError.textContent = '';
+    }
+    // Pre-fill admin user
+    if (deleteAdminUser) {
+      deleteAdminUser.value = (state.admin.user && state.admin.user.username) ? state.admin.user.username : 'Pastora';
+    }
     deleteModal.classList.add('open');
+    if (deleteAdminPassword) {
+      setTimeout(() => deleteAdminPassword.focus(), 150);
+    }
   }
 
   function closeDeleteModal() {
     deleteModal.classList.remove('open');
     state.deleteId = null;
+    if (deleteAdminPassword) deleteAdminPassword.value = '';
+    if (deleteAuthError) deleteAuthError.style.display = 'none';
   }
 
-  cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+  if (closeDeleteModalBtn) closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
+  if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
 
-  confirmDeleteBtn.addEventListener('click', async () => {
-    if (!state.deleteId) return;
+  // Form submit for delete with admin authorization
+  if (deleteAuthForm) {
+    deleteAuthForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!state.deleteId) return;
 
-    try {
-      const res = await fetch(`/api/personas/${state.deleteId}`, {
-        method: 'DELETE'
-      });
+      const adminUser = deleteAdminUser ? deleteAdminUser.value.trim() : '';
+      const adminPassword = deleteAdminPassword ? deleteAdminPassword.value : '';
 
-      if (!res.ok) throw new Error('Error al eliminar');
+      if (!adminUser || !adminPassword) {
+        if (deleteAuthError) {
+          deleteAuthError.style.display = 'flex';
+          deleteAuthError.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Introduce el usuario y contraseña de administrador.';
+        }
+        return;
+      }
 
-      showToast('Asistencia eliminada', 'success');
-      closeDeleteModal();
-      await fetchAsistencias();
-      await fetchStats();
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  });
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-spinner fa-spin"></i> Verificando...';
+      if (deleteAuthError) deleteAuthError.style.display = 'none';
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (state.admin.token) {
+          headers['Authorization'] = `Bearer ${state.admin.token}`;
+        }
+
+        const res = await fetch(`/api/personas/${state.deleteId}`, {
+          method: 'DELETE',
+          headers,
+          body: JSON.stringify({ adminUser, adminPassword })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Credenciales de administrador incorrectas');
+        }
+
+        showToast(data.message || 'Registro eliminado correctamente', 'success');
+        closeDeleteModal();
+        await fetchAsistencias();
+        await fetchStats();
+
+      } catch (err) {
+        if (deleteAuthError) {
+          deleteAuthError.style.display = 'flex';
+          deleteAuthError.innerHTML = `<i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> ${escapeHtml(err.message)}`;
+        }
+        if (deleteAdminPassword) {
+          deleteAdminPassword.focus();
+          deleteAdminPassword.select();
+        }
+      } finally {
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-trash-can"></i> Aprobar y Eliminar';
+      }
+    });
+  }
 
   // ========================================================
   // IMPORT EXCEL
@@ -971,6 +1063,298 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ========================================================
+  // PANEL DE ADMINISTRADORES (Solo Usuarios Admin)
+  // ========================================================
+
+  async function openAdminPanel() {
+    if (!adminModal) return;
+    adminModal.classList.add('open');
+    if (state.admin.token) {
+      try {
+        const res = await fetch('/api/admin/verify', {
+          headers: { 'Authorization': `Bearer ${state.admin.token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          state.admin.user = data.user;
+          showAdminDashboard();
+          return;
+        }
+      } catch (err) {
+        console.warn('Verificación de token falló:', err);
+      }
+      // Token expirado o inválido
+      logoutAdmin(false);
+    } else {
+      showAdminLogin();
+    }
+  }
+
+  function closeAdminPanel() {
+    if (!adminModal) return;
+    adminModal.classList.remove('open');
+    if (adminLoginError) adminLoginError.style.display = 'none';
+    if (createAdminError) createAdminError.style.display = 'none';
+  }
+
+  function showAdminLogin() {
+    if (adminLoginView) adminLoginView.style.display = 'block';
+    if (adminDashboardView) adminDashboardView.style.display = 'none';
+    if (loginAdminPass) loginAdminPass.value = '';
+    if (adminLoginError) adminLoginError.style.display = 'none';
+    if (loginAdminPass) {
+      setTimeout(() => loginAdminPass.focus(), 150);
+    }
+  }
+
+  function showAdminDashboard() {
+    if (adminLoginView) adminLoginView.style.display = 'none';
+    if (adminDashboardView) adminDashboardView.style.display = 'block';
+    if (currentAdminName && state.admin.user) {
+      currentAdminName.textContent = state.admin.user.username;
+    }
+    loadAdminUsers();
+  }
+
+  async function loginAdmin(username, password) {
+    if (!username || !password) return;
+
+    if (btnLoginAdmin) {
+      btnLoginAdmin.disabled = true;
+      btnLoginAdmin.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-spinner fa-spin"></i> Verificando...';
+    }
+    if (adminLoginError) adminLoginError.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Usuario o contraseña de administrador incorrectos');
+      }
+
+      state.admin.token = data.token;
+      state.admin.user = data.user;
+      localStorage.setItem('control_nvsr_admin_token', data.token);
+      localStorage.setItem('control_nvsr_admin_user', JSON.stringify(data.user));
+
+      showToast(`¡Bienvenida ${data.user.username}! Sesión iniciada`, 'success');
+      showAdminDashboard();
+
+    } catch (err) {
+      if (adminLoginError) {
+        adminLoginError.style.display = 'flex';
+        adminLoginError.innerHTML = `<i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> ${escapeHtml(err.message)}`;
+      }
+      if (loginAdminPass) {
+        loginAdminPass.focus();
+        loginAdminPass.select();
+      }
+    } finally {
+      if (btnLoginAdmin) {
+        btnLoginAdmin.disabled = false;
+        btnLoginAdmin.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-right-to-bracket"></i> Entrar al Panel Admin';
+      }
+    }
+  }
+
+  async function logoutAdmin(notify = true) {
+    if (state.admin.token) {
+      try {
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${state.admin.token}` }
+        });
+      } catch (e) { }
+    }
+    state.admin.token = null;
+    state.admin.user = null;
+    localStorage.removeItem('control_nvsr_admin_token');
+    localStorage.removeItem('control_nvsr_admin_user');
+
+    if (notify) {
+      showToast('Sesión de administrador cerrada', 'info');
+    }
+    showAdminLogin();
+  }
+
+  async function loadAdminUsers() {
+    if (!state.admin.token) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${state.admin.token}` }
+      });
+      if (!res.ok) throw new Error('Error al cargar la lista de administradores');
+      const data = await res.json();
+      state.admin.usersList = data.users || [];
+      renderAdminUsers();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderAdminUsers() {
+    if (!adminUsersList) return;
+    adminUsersList.innerHTML = '';
+    const users = state.admin.usersList;
+
+    if (adminCountBadge) {
+      adminCountBadge.textContent = `${users.length} ${users.length === 1 ? 'Admin' : 'Admins'}`;
+    }
+
+    if (users.length === 0) {
+      adminUsersList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem 0;">No hay administradores registrados.</div>';
+      return;
+    }
+
+    users.forEach(u => {
+      const item = document.createElement('div');
+      item.className = 'admin-user-item';
+      const isCurrent = state.admin.user && state.admin.user.username.toLowerCase() === u.username.toLowerCase();
+
+      item.innerHTML = `
+        <div class="admin-user-item-info">
+          <div class="admin-user-item-avatar">
+            <i class="fa-sharp-duotone fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <div class="admin-user-name">
+              ${escapeHtml(u.username)}
+              ${isCurrent ? '<span style="color: #10b981; font-size: 0.72rem; margin-left: 0.35rem; font-weight: 700;">(Tú)</span>' : ''}
+            </div>
+            <div class="admin-user-date">
+              Alta: ${u.created_at ? u.created_at.slice(0, 10) : 'Inicial'}
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="badge-status badge-consolidado" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">
+            <i class="fa-sharp-duotone fa-solid fa-shield"></i> Admin
+          </span>
+          ${(!isCurrent && users.length > 1) ? `
+            <button type="button" class="action-btn btn-delete btn-delete-admin" data-id="${u.id}" data-name="${escapeHtml(u.username)}" title="Eliminar administrador" style="width: 28px; height: 28px;">
+              <i class="fa-sharp-duotone fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
+            </button>
+          ` : ''}
+        </div>
+      `;
+
+      adminUsersList.appendChild(item);
+    });
+
+    // Delete admin event
+    document.querySelectorAll('.btn-delete-admin').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const name = btn.dataset.name;
+        if (!confirm(`¿Estás seguro de que deseas eliminar al administrador "${name}"?`)) return;
+
+        try {
+          const res = await fetch(`/api/admin/users/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${state.admin.token}` }
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+          showToast(`Administrador "${name}" eliminado`, 'success');
+          loadAdminUsers();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    });
+  }
+
+  // Create new admin user
+  if (createAdminForm) {
+    createAdminForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = newAdminUser ? newAdminUser.value.trim() : '';
+      const pass = newAdminPass ? newAdminPass.value : '';
+      const passConfirm = newAdminPassConfirm ? newAdminPassConfirm.value : '';
+
+      if (!username || username.length < 3) {
+        showCreateAdminError('El nombre de usuario debe tener al menos 3 caracteres.');
+        if (newAdminUser) newAdminUser.focus();
+        return;
+      }
+
+      if (!pass || pass.length < 6) {
+        showCreateAdminError('La contraseña debe tener al menos 6 caracteres.');
+        if (newAdminPass) newAdminPass.focus();
+        return;
+      }
+
+      if (pass !== passConfirm) {
+        showCreateAdminError('Las contraseñas no coinciden.');
+        if (newAdminPassConfirm) newAdminPassConfirm.focus();
+        return;
+      }
+
+      if (createAdminError) createAdminError.style.display = 'none';
+      if (btnSubmitNewAdmin) {
+        btnSubmitNewAdmin.disabled = true;
+        btnSubmitNewAdmin.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-spinner fa-spin"></i> Registrando...';
+      }
+
+      try {
+        const res = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.admin.token}`
+          },
+          body: JSON.stringify({ username, password: pass })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Error al crear el usuario administrador');
+        }
+
+        showToast(data.message || `Administrador "${username}" creado`, 'success');
+        createAdminForm.reset();
+        await loadAdminUsers();
+
+      } catch (err) {
+        showCreateAdminError(err.message);
+      } finally {
+        if (btnSubmitNewAdmin) {
+          btnSubmitNewAdmin.disabled = false;
+          btnSubmitNewAdmin.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-user-plus"></i> Registrar Usuario Admin';
+        }
+      }
+    });
+  }
+
+  function showCreateAdminError(msg) {
+    if (!createAdminError) return;
+    createAdminError.style.display = 'flex';
+    createAdminError.innerHTML = `<i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> ${escapeHtml(msg)}`;
+  }
+
+  // Attach Admin Panel DOM events
+  if (btnOpenAdminPanel) btnOpenAdminPanel.addEventListener('click', openAdminPanel);
+  if (closeAdminModalBtn) closeAdminModalBtn.addEventListener('click', closeAdminPanel);
+  if (closeAdminPanelBtn) closeAdminPanelBtn.addEventListener('click', closeAdminPanel);
+  if (btnLogoutAdmin) btnLogoutAdmin.addEventListener('click', () => logoutAdmin(true));
+
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const u = loginAdminUser ? loginAdminUser.value.trim() : '';
+      const p = loginAdminPass ? loginAdminPass.value : '';
+      loginAdmin(u, p);
+    });
+  }
+
   // Close modals on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -978,6 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
       closeNuevoModal();
       closeEditModal();
       closeDeleteModal();
+      closeAdminPanel();
       importModal.classList.remove('open');
       exportDropdown.classList.remove('open');
       asistDropdownResults.style.display = 'none';

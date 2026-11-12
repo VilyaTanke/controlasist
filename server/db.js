@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const dbDir = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dbDir)) {
@@ -44,7 +45,27 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_asistencias_persona ON asistencias(persona_id);
   CREATE INDEX IF NOT EXISTS idx_asistencias_fecha ON asistencias(fecha_hora);
+
+  CREATE TABLE IF NOT EXISTS usuarios_admin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    rol TEXT DEFAULT 'admin',
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
+  );
 `);
+
+// Seed default admin user "Pastora" with password "12345678" if not exists
+const defaultAdmin = db.prepare('SELECT id FROM usuarios_admin WHERE username = ?').get('Pastora');
+if (!defaultAdmin) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const passwordHash = crypto.scryptSync('12345678', salt, 64).toString('hex');
+  db.prepare(`
+    INSERT INTO usuarios_admin (username, password_hash, salt, rol, created_at)
+    VALUES (?, ?, ?, 'admin', datetime('now', 'localtime'))
+  `).run('Pastora', passwordHash, salt);
+}
 
 // Auto-migration: ensure existing personas have attendance records in asistencias
 db.exec(`
@@ -431,6 +452,105 @@ const getStats = () => {
   };
 };
 
+// ========================================================
+// ADMIN USERS MANAGEMENT (Solo Usuarios Admin)
+// ========================================================
+
+/**
+ * Verify admin credentials
+ * @param {string} username
+ * @param {string} password
+ * @returns {object|null} Admin user info without hash/salt, or null if invalid
+ */
+const verifyAdminCredentials = (username, password) => {
+  if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+    return null;
+  }
+
+  const user = db.prepare('SELECT * FROM usuarios_admin WHERE username = ?').get(username.trim());
+  if (!user) return null;
+
+  try {
+    const checkHash = crypto.scryptSync(password, user.salt, 64).toString('hex');
+    const isValid = crypto.timingSafeEqual(Buffer.from(user.password_hash, 'hex'), Buffer.from(checkHash, 'hex'));
+    if (isValid) {
+      return {
+        id: user.id,
+        username: user.username,
+        rol: user.rol,
+        created_at: user.created_at
+      };
+    }
+  } catch (err) {
+    console.error('Error verificando credenciales admin:', err);
+  }
+  return null;
+};
+
+/**
+ * List all admin users
+ * @returns {Array} List of admin users
+ */
+const getAdminUsers = () => {
+  return db.prepare('SELECT id, username, rol, created_at FROM usuarios_admin ORDER BY id ASC').all();
+};
+
+/**
+ * Create a new admin user
+ * @param {object} param0 { username, password }
+ * @returns {object} Created admin user info
+ */
+const createAdminUser = ({ username, password }) => {
+  if (!username || typeof username !== 'string' || !username.trim()) {
+    throw new Error('El nombre de usuario es obligatorio');
+  }
+
+  const cleanUsername = username.trim();
+  if (cleanUsername.length < 3) {
+    throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
+  }
+
+  if (cleanUsername.length > 50) {
+    throw new Error('El nombre de usuario no puede exceder 50 caracteres');
+  }
+
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    throw new Error('La contraseña debe tener al menos 6 caracteres');
+  }
+
+  const existing = db.prepare('SELECT id FROM usuarios_admin WHERE username = ?').get(cleanUsername);
+  if (existing) {
+    throw new Error(`El usuario "${cleanUsername}" ya existe`);
+  }
+
+  const salt = crypto.randomBytes(16).toString('hex');
+  const passwordHash = crypto.scryptSync(password, salt, 64).toString('hex');
+
+  const result = db.prepare(`
+    INSERT INTO usuarios_admin (username, password_hash, salt, rol, created_at)
+    VALUES (?, ?, ?, 'admin', datetime('now', 'localtime'))
+  `).run(cleanUsername, passwordHash, salt);
+
+  return {
+    id: result.lastInsertRowid,
+    username: cleanUsername,
+    rol: 'admin',
+    created_at: getLocalTimestamp()
+  };
+};
+
+/**
+ * Delete an admin user (prevent deleting if only 1 remains)
+ * @param {number} id
+ */
+const deleteAdminUser = (id) => {
+  const total = db.prepare('SELECT COUNT(*) as c FROM usuarios_admin').get().c;
+  if (total <= 1) {
+    throw new Error('No es posible eliminar el único usuario administrador restante');
+  }
+  return db.prepare('DELETE FROM usuarios_admin WHERE id = ?').run(id);
+};
+
 module.exports = {
   db,
   dbPath,
@@ -444,6 +564,10 @@ module.exports = {
   createMany,
   update,
   remove,
-  getStats
+  getStats,
+  verifyAdminCredentials,
+  getAdminUsers,
+  createAdminUser,
+  deleteAdminUser
 };
 
