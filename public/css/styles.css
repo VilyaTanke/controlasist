@@ -1676,3 +1676,203 @@ textarea.form-control {
   font-size: 0.8rem;
 }
 
+/* ======================================================== */
+/* FONT AWESOME & SHARP DUOTONE INTEGRATION                */
+/* ======================================================== */
+
+/* Variables for Sharp Duotone Layers */
+:root {
+  --fa-primary-color: currentColor;
+  --fa-secondary-color: currentColor;
+  --fa-secondary-opacity: 0.45;
+}
+
+/* Base icon sizing and alignment */
+i[class*="fa-"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: -0.125em;
+}
+
+/* Sharp Duotone fallback font rule to guarantee crisp rendering with FA 6 */
+.fa-sharp-duotone {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
+/* Church Header Logo Icon */
+.church-logo-badge i {
+  font-size: 2.2rem;
+  color: #ffffff;
+}
+
+/* Institutional Banner Info Icons */
+.info-icon i {
+  font-size: 1.15rem;
+  color: #bfdbfe;
+}
+
+/* Details arrow animation with Font Awesome */
+.church-info-details .details-arrow {
+  display: inline-flex;
+  transition: transform 0.25s ease;
+  font-size: 0.85rem;
+  color: #bfdbfe;
+}
+
+.church-info-details[open] .details-arrow {
+  transform: rotate(180deg);
+}
+
+/* Hero Button Big Icons */
+.hero-btn-icon-wrapper i {
+  font-size: 1.85rem;
+}
+
+.hero-btn-arrow i {
+  font-size: 1.25rem;
+}
+
+/* Modal Headers */
+.modal-header-icon i {
+  font-size: 1.4rem;
+}
+
+.modal-header-icon.icon-green {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.modal-close i {
+  font-size: 1rem;
+}
+
+/* Input Wrapper Icons */
+.input-wrapper .input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.input-wrapper .input-icon i {
+  font-size: 0.95rem;
+  color: #94a3b8;
+}
+
+/* Clear search button with icon */
+.clear-search-btn i {
+  font-size: 0.75rem;
+}
+
+/* Filter pills icons */
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.filter-pill i {
+  font-size: 0.85rem;
+}
+
+.filter-pill[data-filter="nuevo"] i { color: #16a34a; }
+.filter-pill[data-filter="consolidado"] i { color: #2563eb; }
+.filter-pill[data-filter="hoy"] i { color: #d97706; }
+
+/* Status Badges */
+.badge-status i {
+  font-size: 0.75rem;
+  margin-right: 0.3rem;
+}
+
+.badge-nuevo i {
+  color: #16a34a;
+}
+
+.badge-consolidado i {
+  color: #2563eb;
+}
+
+/* WhatsApp Button */
+.whatsapp-btn i {
+  font-size: 1.05rem;
+}
+
+/* Table Row Actions */
+.action-btn i {
+  font-size: 0.875rem;
+}
+
+.action-btn.btn-edit:hover i {
+  color: #2563eb;
+}
+
+.action-btn.btn-delete:hover i {
+  color: #ef4444;
+}
+
+/* Dropdown Menu Icons */
+.dropdown-item i {
+  font-size: 1.15rem;
+  color: #2563eb;
+}
+
+/* Empty State */
+.empty-state .empty-icon i {
+  font-size: 3rem;
+  color: #94a3b8;
+}
+
+/* Upload Dropzone */
+.dropzone-icon i {
+  font-size: 2.75rem;
+  color: #3b82f6;
+}
+
+/* Toast Notifications */
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.toast.toast-success .toast-icon {
+  color: #10b981;
+}
+
+.toast.toast-error .toast-icon {
+  color: #ef4444;
+}
+
+/* Already attended alert */
+.already-attended-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.already-attended-alert i {
+  font-size: 1rem;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+/* Quick Now button */
+.btn-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-now i {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+

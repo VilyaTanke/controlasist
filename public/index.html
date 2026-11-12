@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Control NVSR - Iglesia Nueva Vida de Soto del Real</title>
-  <link rel="stylesheet" href="css/styles.css?v=2.2">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
+  <!-- Font Awesome 6.7.2 (Supports Font Awesome Sharp Duotone syntax with Free fallback & Pro kit) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="css/styles.css?v=2.3">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 512%22 fill=%22%231e3a8a%22><path d=%22M344 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V48H264c-13.3 0-24 10.7-24 24s10.7 24 24 24h32v48H264c-13.3 0-24 10.7-24 24s10.7 24 24 24h32v45.3L166.6 304.7c-4.2 3.5-9.5 5.3-14.6 5.3H96c-17.7 0-32 14.3-32 32v128c0 23.5-12.7 42.1-32 42.1H16c-8.8 0-16 7.2-16 16s7.2 16 16 16h608c8.8 0 16-7.2 16-16s-7.2-16-16-16H608c-19.3 0-32-18.6-32-42.1V342c0-17.7-14.3-32-32-32H488c-5.1 0-10.4-1.8-14.6-5.3L344 237.3V24zM320 288a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm-48 112h96v112H272V400z%22/></svg>">
 </head>
+
 <body>
 
   <div class="app-container">
@@ -15,7 +21,7 @@
     <header class="church-header">
       <div class="header-top">
         <div class="church-identity">
-          <div class="church-logo-badge">⛪</div>
+          <div class="church-logo-badge"><i class="fa-sharp-duotone fa-solid fa-church"></i></div>
           <div class="church-title-group">
             <h1>Iglesia Nueva Vida</h1>
             <p>Soto del Real • Control de Asistencia</p>
@@ -34,26 +40,26 @@
       <!-- Info Institucional Colapsable -->
       <details class="church-info-details">
         <summary class="church-info-summary">
-          <span>ℹ️ Información de la Iglesia y Cultos</span>
-          <span class="details-arrow">▼</span>
+          <span><i class="fa-sharp-duotone fa-solid fa-circle-info"></i> Información de la Iglesia y Cultos</span>
+          <i class="fa-sharp-duotone fa-solid fa-chevron-down details-arrow"></i>
         </summary>
         <div class="church-info-cards">
           <div class="church-info-item">
-            <div class="info-icon">📍</div>
+            <div class="info-icon"><i class="fa-sharp-duotone fa-solid fa-location-dot"></i></div>
             <div class="info-content">
               <span class="info-label">Dirección</span>
               <span class="info-value">Calle del Prado, 15, 28791 Soto del Real, Madrid</span>
             </div>
           </div>
           <div class="church-info-item">
-            <div class="info-icon">⏰</div>
+            <div class="info-icon"><i class="fa-sharp-duotone fa-solid fa-clock"></i></div>
             <div class="info-content">
               <span class="info-label">Horario de cultos</span>
               <span class="info-value">Domingos a las 18:00 h.</span>
             </div>
           </div>
           <div class="church-info-item">
-            <div class="info-icon">👥</div>
+            <div class="info-icon"><i class="fa-sharp-duotone fa-solid fa-users"></i></div>
             <div class="info-content">
               <span class="info-label">Pastores</span>
               <span class="info-value">Jorge Gámez Zúñiga y Carmen Vera Mendoza</span>
@@ -66,7 +72,7 @@
     <!-- Resumen rápido del culto actual -->
     <div class="today-summary-banner">
       <div class="today-summary-content">
-        <span class="today-title">📅 Culto de Hoy:</span>
+        <span class="today-title"><i class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Culto de Hoy:</span>
         <span class="today-pill pill-total"><strong id="statHoy">0</strong> Asistencias</span>
         <span class="today-pill pill-nuevo"><strong id="statNuevos">0</strong> Nuevos</span>
         <span class="today-pill pill-consolidado"><strong id="statConsolidados">0</strong> Consolidados</span>
@@ -81,27 +87,27 @@
       <!-- Botón 1: Registrar Asistencia -->
       <button type="button" class="hero-action-btn action-asistencia" id="btnOpenAsistencia">
         <div class="hero-btn-icon-wrapper">
-          <span class="hero-btn-icon">📋</span>
+          <span class="hero-btn-icon"><i class="fa-sharp-duotone fa-solid fa-clipboard-user"></i></span>
         </div>
         <div class="hero-btn-content">
           <div class="hero-btn-badge">Acción Rápida</div>
           <h2 class="hero-btn-title">Registrar Asistencia</h2>
           <p class="hero-btn-desc">Buscar por nombre a persona registrada y marcar su asistencia de hoy</p>
         </div>
-        <div class="hero-btn-arrow">➔</div>
+        <div class="hero-btn-arrow"><i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></div>
       </button>
 
       <!-- Botón 2: Registrar Nuevo -->
       <button type="button" class="hero-action-btn action-nuevo" id="btnOpenNuevo">
         <div class="hero-btn-icon-wrapper icon-green">
-          <span class="hero-btn-icon">🌱</span>
+          <span class="hero-btn-icon"><i class="fa-sharp-duotone fa-solid fa-user-plus"></i></span>
         </div>
         <div class="hero-btn-content">
           <div class="hero-btn-badge badge-green">Nueva Persona</div>
           <h2 class="hero-btn-title">Registrar Nuevo</h2>
           <p class="hero-btn-desc">Llenar formulario completo para registrar a un nuevo asistente</p>
         </div>
-        <div class="hero-btn-arrow">➔</div>
+        <div class="hero-btn-arrow"><i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></div>
       </button>
     </section>
 
@@ -109,7 +115,7 @@
     <section class="card table-card">
       <div class="card-header">
         <div class="card-title-group">
-          <h2><span>📋</span> Listado de Asistencias</h2>
+          <h2><i class="fa-sharp-duotone fa-solid fa-clipboard-list"></i> Listado de Asistencias</h2>
           <p id="totalCountLabel">Cargando...</p>
         </div>
 
@@ -118,14 +124,14 @@
           <!-- Dropdown Exportar Excel -->
           <div class="dropdown" id="exportDropdown">
             <button type="button" class="btn btn-success" id="exportBtn">
-              <span>📥</span>
+              <i class="fa-sharp-duotone fa-solid fa-file-excel"></i>
               <span>Exportar</span>
-              <span style="font-size: 0.75rem;">▼</span>
+              <i class="fa-sharp-duotone fa-solid fa-chevron-down" style="font-size: 0.75rem;"></i>
             </button>
 
             <div class="dropdown-menu">
               <button type="button" class="dropdown-item" id="btnExportOriginal">
-                <span style="font-size: 1.25rem;">📄</span>
+                <i class="fa-sharp-duotone fa-solid fa-file-lines" style="font-size: 1.25rem;"></i>
                 <div>
                   <div class="dropdown-item-title">Formato Plantilla Original</div>
                   <div class="dropdown-item-desc">Nombres, Teléfono, Cumpleaños, Nuevo, Consolidado</div>
@@ -133,7 +139,7 @@
               </button>
 
               <button type="button" class="dropdown-item" id="btnExportFull">
-                <span style="font-size: 1.25rem;">📑</span>
+                <i class="fa-sharp-duotone fa-solid fa-table-list" style="font-size: 1.25rem;"></i>
                 <div>
                   <div class="dropdown-item-title">Formato Completo</div>
                   <div class="dropdown-item-desc">Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, Notas</div>
@@ -142,8 +148,9 @@
 
               <div class="dropdown-divider"></div>
 
-              <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download title="Descargar archivo .db de SQLite">
-                <span style="font-size: 1.25rem;">💾</span>
+              <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download
+                title="Descargar archivo .db de SQLite">
+                <i class="fa-sharp-duotone fa-solid fa-database" style="font-size: 1.25rem;"></i>
                 <div>
                   <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
                   <div class="dropdown-item-desc">Descarga íntegra de la base de datos SQLite</div>
@@ -154,7 +161,7 @@
 
           <!-- Botón Importar Excel -->
           <button type="button" class="btn btn-outline" id="btnOpenImport" title="Importar archivo Excel existente">
-            <span>📤</span>
+            <i class="fa-sharp-duotone fa-solid fa-file-import"></i>
             <span class="hide-mobile">Importar</span>
           </button>
         </div>
@@ -167,24 +174,24 @@
           <div class="toolbar-row">
             <div class="search-container">
               <div class="input-wrapper">
-                <span class="input-icon">🔍</span>
-                <input
-                  type="text"
-                  id="searchInput"
-                  class="form-control"
-                  placeholder="Buscar en asistencias por nombre, teléfono..."
-                  autocomplete="off"
-                >
-                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda" style="display: none;">✕</button>
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="searchInput" class="form-control"
+                  placeholder="Buscar en asistencias por nombre, teléfono..." autocomplete="off">
+                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda"
+                  style="display: none;"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
               </div>
             </div>
 
             <!-- Filtros por tipo y fecha -->
             <div class="filter-pills">
-              <button type="button" class="filter-pill active" data-filter="hoy">📅 Hoy</button>
-              <button type="button" class="filter-pill" data-filter="todos">Todos</button>
-              <button type="button" class="filter-pill" data-filter="nuevo">🟢 Nuevos</button>
-              <button type="button" class="filter-pill" data-filter="consolidado">🔵 Consolidados</button>
+              <button type="button" class="filter-pill active" data-filter="hoy"><i
+                  class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Hoy</button>
+              <button type="button" class="filter-pill" data-filter="todos"><i
+                  class="fa-sharp-duotone fa-solid fa-users"></i> Todos</button>
+              <button type="button" class="filter-pill" data-filter="nuevo"><i
+                  class="fa-sharp-duotone fa-solid fa-seedling"></i> Nuevos</button>
+              <button type="button" class="filter-pill" data-filter="consolidado"><i
+                  class="fa-sharp-duotone fa-solid fa-user-check"></i> Consolidados</button>
             </div>
           </div>
         </div>
@@ -211,7 +218,7 @@
 
           <!-- Estado Vacío -->
           <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-icon">📭</div>
+            <div class="empty-icon"><i class="fa-sharp-duotone fa-solid fa-folder-open"></i></div>
             <h3>No se encontraron asistencias</h3>
             <p>Usa los botones superiores para registrar asistencia o crear un nuevo asistente.</p>
           </div>
@@ -229,13 +236,14 @@
     <div class="modal-content modal-asistencia">
       <div class="modal-header">
         <div class="modal-title-box">
-          <span class="modal-header-icon">📋</span>
+          <span class="modal-header-icon"><i class="fa-sharp-duotone fa-solid fa-clipboard-check"></i></span>
           <div>
             <h3>Registrar Asistencia</h3>
             <p>Busca a la persona registrada y marca su asistencia de hoy</p>
           </div>
         </div>
-        <button type="button" class="modal-close" id="closeAsistenciaModalBtn">&times;</button>
+        <button type="button" class="modal-close" id="closeAsistenciaModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="asistenciaForm">
@@ -248,15 +256,11 @@
             </label>
             <div class="searchable-dropdown-wrapper">
               <div class="input-wrapper">
-                <span class="input-icon">🔍</span>
-                <input
-                  type="text"
-                  id="asistSearchInput"
-                  class="form-control"
-                  placeholder="Escribe el nombre o teléfono..."
-                  autocomplete="off"
-                >
-                <button type="button" id="asistClearBtn" class="clear-search-btn" style="display: none;">✕</button>
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="asistSearchInput" class="form-control"
+                  placeholder="Escribe el nombre o teléfono..." autocomplete="off">
+                <button type="button" id="asistClearBtn" class="clear-search-btn" style="display: none;"><i
+                    class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
               </div>
 
               <!-- Lista desplegable emergente de sugerencias -->
@@ -272,7 +276,8 @@
           <!-- Tarjeta de Persona Seleccionada -->
           <div class="selected-person-card" id="selectedPersonCard" style="display: none;">
             <div class="selected-person-header">
-              <div class="selected-person-avatar" id="selectedPersonAvatar">👤</div>
+              <div class="selected-person-avatar" id="selectedPersonAvatar"><i
+                  class="fa-sharp-duotone fa-solid fa-user"></i></div>
               <div class="selected-person-info">
                 <h4 id="selectedPersonName">-</h4>
                 <div class="selected-person-meta">
@@ -287,7 +292,8 @@
 
             <!-- Alerta si ya asistió hoy -->
             <div class="already-attended-alert" id="alreadyAttendedAlert" style="display: none;">
-              ⚠️ Esta persona ya tiene una asistencia registrada para el culto de hoy.
+              <i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Esta persona ya tiene una asistencia
+              registrada para el culto de hoy.
             </div>
           </div>
 
@@ -330,19 +336,15 @@
           <!-- Observaciones / Petición de oración opcional -->
           <div class="form-group" id="asistNotasGroup" style="display: none;">
             <label class="form-label" for="asistNotas">Observaciones / Petición de oración</label>
-            <textarea
-              id="asistNotas"
-              class="form-control"
-              placeholder="Notas del culto de hoy, peticiones de oración, ujier que atendió..."
-              rows="2"
-            ></textarea>
+            <textarea id="asistNotas" class="form-control"
+              placeholder="Notas del culto de hoy, peticiones de oración, ujier que atendió..." rows="2"></textarea>
           </div>
 
           <!-- Mensaje para invitar a registrar nuevo si no se encuentra -->
           <div class="not-found-prompt" id="notFoundPrompt" style="display: none;">
             <p>¿No encuentras a la persona en la lista?</p>
             <button type="button" class="btn btn-sm btn-outline" id="btnSwitchToNuevo">
-              🌱 Registrar como Nuevo Asistente
+              <i class="fa-sharp-duotone fa-solid fa-user-plus"></i> Registrar como Nuevo Asistente
             </button>
           </div>
 
@@ -351,7 +353,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" id="cancelAsistenciaBtn">Cancelar</button>
           <button type="submit" class="btn btn-primary" id="btnSubmitAsistencia" disabled>
-            ✅ Confirmar Asistencia
+            <i class="fa-sharp-duotone fa-solid fa-check"></i> Confirmar Asistencia
           </button>
         </div>
       </form>
@@ -365,13 +367,14 @@
     <div class="modal-content modal-nuevo">
       <div class="modal-header">
         <div class="modal-title-box">
-          <span class="modal-header-icon">🌱</span>
+          <span class="modal-header-icon icon-green"><i class="fa-sharp-duotone fa-solid fa-user-plus"></i></span>
           <div>
             <h3>Registrar Nuevo Asistente</h3>
             <p>Formulario completo de datos personales y primera asistencia</p>
           </div>
         </div>
-        <button type="button" class="modal-close" id="closeNuevoModalBtn">&times;</button>
+        <button type="button" class="modal-close" id="closeNuevoModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="nuevoPersonaForm">
@@ -383,15 +386,9 @@
               Nombre y Apellidos <span class="required">*</span>
             </label>
             <div class="input-wrapper">
-              <span class="input-icon">👤</span>
-              <input
-                type="text"
-                id="nuevoInputNombre"
-                class="form-control"
-                placeholder="Ej: Daniel Morales Pérez"
-                required
-                autocomplete="name"
-              >
+              <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user"></i></span>
+              <input type="text" id="nuevoInputNombre" class="form-control" placeholder="Ej: Daniel Morales Pérez"
+                required autocomplete="name">
             </div>
           </div>
 
@@ -399,14 +396,9 @@
           <div class="form-group">
             <label class="form-label" for="nuevoInputTelefono">Teléfono de Contacto</label>
             <div class="input-wrapper">
-              <span class="input-icon">📞</span>
-              <input
-                type="tel"
-                id="nuevoInputTelefono"
-                class="form-control"
-                placeholder="Ej: 612 34 56 78"
-                autocomplete="tel"
-              >
+              <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-phone"></i></span>
+              <input type="tel" id="nuevoInputTelefono" class="form-control" placeholder="Ej: 612 34 56 78"
+                autocomplete="tel">
             </div>
           </div>
 
@@ -414,14 +406,9 @@
           <div class="form-group">
             <label class="form-label" for="nuevoInputDireccion">Dirección</label>
             <div class="input-wrapper">
-              <span class="input-icon">🏠</span>
-              <input
-                type="text"
-                id="nuevoInputDireccion"
-                class="form-control"
-                placeholder="Ej: Calle Real, 14, Soto del Real"
-                autocomplete="street-address"
-              >
+              <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-house"></i></span>
+              <input type="text" id="nuevoInputDireccion" class="form-control"
+                placeholder="Ej: Calle Real, 14, Soto del Real" autocomplete="street-address">
             </div>
           </div>
 
@@ -429,12 +416,8 @@
           <div class="form-group">
             <label class="form-label" for="nuevoInputCumpleanos">Fecha de Cumpleaños</label>
             <div class="input-wrapper">
-              <span class="input-icon">🎂</span>
-              <input
-                type="date"
-                id="nuevoInputCumpleanos"
-                class="form-control"
-              >
+              <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-cake-candles"></i></span>
+              <input type="date" id="nuevoInputCumpleanos" class="form-control">
             </div>
           </div>
 
@@ -472,14 +455,9 @@
               Fecha y Hora de Registro
             </label>
             <div class="datetime-row">
-              <input
-                type="datetime-local"
-                id="nuevoInputFechaHora"
-                class="form-control no-icon"
-                required
-              >
+              <input type="datetime-local" id="nuevoInputFechaHora" class="form-control no-icon" required>
               <button type="button" class="btn-now" id="nuevoBtnSetNow" title="Poner fecha y hora de este instante">
-                🕒 Ahora
+                <i class="fa-sharp-duotone fa-solid fa-clock-rotate-left"></i> Ahora
               </button>
             </div>
           </div>
@@ -487,12 +465,8 @@
           <!-- Notas / Petición de oración -->
           <div class="form-group">
             <label class="form-label" for="nuevoInputNotas">Observaciones / Petición de oración</label>
-            <textarea
-              id="nuevoInputNotas"
-              class="form-control"
-              placeholder="Notas adicionales, ujier que atendió, peticiones..."
-              rows="2"
-            ></textarea>
+            <textarea id="nuevoInputNotas" class="form-control"
+              placeholder="Notas adicionales, ujier que atendió, peticiones..." rows="2"></textarea>
           </div>
 
         </div>
@@ -500,7 +474,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" id="cancelNuevoBtn">Cancelar</button>
           <button type="submit" class="btn btn-success" id="btnSubmitNuevo">
-            💾 Guardar y Registrar
+            <i class="fa-sharp-duotone fa-solid fa-floppy-disk"></i> Guardar y Registrar
           </button>
         </div>
       </form>
@@ -511,8 +485,9 @@
   <div class="modal-overlay" id="editModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>✏️ Modificar Registro</h3>
-        <button type="button" class="modal-close" id="closeEditModalBtn">&times;</button>
+        <h3><i class="fa-sharp-duotone fa-solid fa-pen-to-square"></i> Modificar Registro</h3>
+        <button type="button" class="modal-close" id="closeEditModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
       <form id="editForm">
         <div class="modal-body">
@@ -541,11 +516,13 @@
             <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
               <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                 <input type="radio" name="editTipo" id="editRadioNuevo" value="nuevo">
-                <span class="badge-status badge-nuevo">🟢 Nuevo</span>
+                <span class="badge-status badge-nuevo"><i class="fa-sharp-duotone fa-solid fa-seedling"></i>
+                  Nuevo</span>
               </label>
               <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                 <input type="radio" name="editTipo" id="editRadioConsolidado" value="consolidado">
-                <span class="badge-status badge-consolidado">🔵 Consolidado</span>
+                <span class="badge-status badge-consolidado"><i class="fa-sharp-duotone fa-solid fa-user-check"></i>
+                  Consolidado</span>
               </label>
             </div>
           </div>
@@ -572,15 +549,18 @@
   <div class="modal-overlay" id="deleteModal">
     <div class="modal-content" style="max-width: 440px;">
       <div class="modal-header">
-        <h3 style="color: #ef4444;">⚠️ Confirmar Eliminación</h3>
+        <h3 style="color: #ef4444;"><i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Confirmar
+          Eliminación</h3>
       </div>
       <div class="modal-body">
         <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción eliminará el registro de la lista de asistencias.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción eliminará el registro
+          de la lista de asistencias.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Sí, Eliminar</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><i
+            class="fa-sharp-duotone fa-solid fa-trash-can"></i> Sí, Eliminar</button>
       </div>
     </div>
   </div>
@@ -589,8 +569,9 @@
   <div class="modal-overlay" id="importModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>📤 Importar Registros desde Excel</h3>
-        <button type="button" class="modal-close" id="closeImportModalBtn">&times;</button>
+        <h3><i class="fa-sharp-duotone fa-solid fa-file-import"></i> Importar Registros desde Excel</h3>
+        <button type="button" class="modal-close" id="closeImportModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body">
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
@@ -598,16 +579,18 @@
         </p>
 
         <div class="dropzone" id="dropzone">
-          <div class="dropzone-icon">📊</div>
+          <div class="dropzone-icon"><i class="fa-sharp-duotone fa-solid fa-cloud-arrow-up"></i></div>
           <div style="font-weight: 600; margin-bottom: 0.25rem;">Arrastra tu archivo aquí o haz clic para examinar</div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">Formatos admitidos: .xlsx, .xls</div>
           <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;">
         </div>
 
-        <div id="selectedFileName" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);"></div>
+        <div id="selectedFileName"
+          style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline" onclick="document.getElementById('importModal').classList.remove('open')">Cancelar</button>
+        <button type="button" class="btn btn-outline"
+          onclick="document.getElementById('importModal').classList.remove('open')">Cancelar</button>
         <button type="button" class="btn btn-primary" id="btnProcessImport" disabled>Procesar e Importar</button>
       </div>
     </div>
@@ -618,4 +601,5 @@
 
   <script src="js/app.js?v=2.2"></script>
 </body>
+
 </html>

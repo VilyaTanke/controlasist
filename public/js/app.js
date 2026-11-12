@@ -175,8 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    const icon = type === 'success' ? '✅' : '⚠️';
-    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    const icon = type === 'success'
+      ? '<i class="fa-sharp-duotone fa-solid fa-circle-check"></i>'
+      : '<i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i>';
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
 
     container.appendChild(toast);
     setTimeout(() => {
@@ -279,7 +281,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
       const isNuevo = p.tipo === 'nuevo';
       const badgeClass = isNuevo ? 'badge-nuevo' : 'badge-consolidado';
-      const badgeText = isNuevo ? '🟢 Nuevo' : '🔵 Consolidado';
+      const badgeText = isNuevo
+        ? '<i class="fa-sharp-duotone fa-solid fa-seedling"></i> Nuevo'
+        : '<i class="fa-sharp-duotone fa-solid fa-user-check"></i> Consolidado';
 
       const waLink = formatWhatsAppLink(p.telefono, p.nombre);
 
@@ -287,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td style="font-weight: 600; color: #64748b; width: 40px; text-align: center;">${index + 1}</td>
         <td>
           <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">${escapeHtml(p.nombre)}</div>
-          ${p.notas ? `<div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;" title="${escapeHtml(p.notas)}">📝 ${escapeHtml(p.notas)}</div>` : ''}
+          ${p.notas ? `<div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;" title="${escapeHtml(p.notas)}"><i class="fa-sharp-duotone fa-solid fa-comment-dots"></i> ${escapeHtml(p.notas)}</div>` : ''}
         </td>
         <td>
           ${p.telefono ? `
@@ -295,22 +299,22 @@ document.addEventListener('DOMContentLoaded', () => {
               <a href="tel:${escapeHtml(p.telefono)}" class="phone-link">${escapeHtml(p.telefono)}</a>
               ${waLink ? `
                 <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="whatsapp-btn" title="Enviar WhatsApp de bienvenida">
-                  💬
+                  <i class="fa-brands fa-whatsapp"></i>
                 </a>
               ` : ''}
             </div>
           ` : '<span style="color: #94a3b8;">-</span>'}
         </td>
         <td>${p.direccion ? escapeHtml(p.direccion) : '<span style="color: #94a3b8;">-</span>'}</td>
-        <td style="white-space: nowrap;">${p.cumpleanos ? `🎂 ${escapeHtml(p.cumpleanos)}` : '<span style="color: #94a3b8;">-</span>'}</td>
+        <td style="white-space: nowrap;">${p.cumpleanos ? `<i class="fa-sharp-duotone fa-solid fa-cake-candles"></i> ${escapeHtml(p.cumpleanos)}` : '<span style="color: #94a3b8;">-</span>'}</td>
         <td>
           <span class="badge-status ${badgeClass}">${badgeText}</span>
         </td>
         <td class="cell-date">${formatDisplayDate(p.fecha_hora_registro)}</td>
         <td style="text-align: right; white-space: nowrap;">
           <div class="row-actions" style="justify-content: flex-end;">
-            <button class="action-btn btn-edit" data-id="${p.id}" title="Editar registro">✏️</button>
-            <button class="action-btn btn-delete" data-id="${p.id}" data-name="${escapeHtml(p.nombre)}" title="Eliminar registro">🗑️</button>
+            <button class="action-btn btn-edit" data-id="${p.id}" title="Editar registro"><i class="fa-sharp-duotone fa-solid fa-pen-to-square"></i></button>
+            <button class="action-btn btn-delete" data-id="${p.id}" data-name="${escapeHtml(p.nombre)}" title="Eliminar registro"><i class="fa-sharp-duotone fa-solid fa-trash-can"></i></button>
           </div>
         </td>
       `;
@@ -425,7 +429,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const isNuevo = p.tipo === 'nuevo';
       const badgeClass = isNuevo ? 'badge-nuevo' : 'badge-consolidado';
-      const badgeText = isNuevo ? '🟢 Nuevo' : '🔵 Consolidado';
+      const badgeText = isNuevo
+        ? '<i class="fa-sharp-duotone fa-solid fa-seedling"></i> Nuevo'
+        : '<i class="fa-sharp-duotone fa-solid fa-user-check"></i> Consolidado';
 
       item.innerHTML = `
         <div>
@@ -433,11 +439,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="dropdown-person-sub">
             <span class="badge-status ${badgeClass}" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${badgeText}</span>
             <span>${p.telefono ? escapeHtml(p.telefono) : 'Sin tel'}</span>
-            ${p.cumpleanos ? `<span>• 🎂 ${escapeHtml(p.cumpleanos)}</span>` : ''}
+            ${p.cumpleanos ? `<span>• <i class="fa-sharp-duotone fa-solid fa-cake-candles"></i> ${escapeHtml(p.cumpleanos)}</span>` : ''}
           </div>
         </div>
         <div>
-          ${p.asistio_hoy > 0 ? `<span class="dropdown-already-badge">✅ Asistió hoy</span>` : `<span style="color: #3b82f6; font-size: 0.85rem; font-weight: 700;">Elegir ➔</span>`}
+          ${p.asistio_hoy > 0 ? `<span class="dropdown-already-badge"><i class="fa-sharp-duotone fa-solid fa-circle-check"></i> Asistió hoy</span>` : `<span style="color: #3b82f6; font-size: 0.85rem; font-weight: 700;">Elegir <i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></span>`}
         </div>
       `;
 
@@ -459,11 +465,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Show person card
     selectedPersonName.textContent = person.nombre;
-    selectedPersonPhone.textContent = person.telefono ? `📞 ${person.telefono}` : 'Sin teléfono registrado';
+    selectedPersonPhone.innerHTML = person.telefono ? `<i class="fa-sharp-duotone fa-solid fa-phone"></i> ${escapeHtml(person.telefono)}` : 'Sin teléfono registrado';
 
     const isNuevo = person.tipo === 'nuevo';
     selectedPersonBadge.className = `badge-status ${isNuevo ? 'badge-nuevo' : 'badge-consolidado'}`;
-    selectedPersonBadge.textContent = isNuevo ? '🟢 Nuevo' : '🔵 Consolidado';
+    selectedPersonBadge.innerHTML = isNuevo
+      ? '<i class="fa-sharp-duotone fa-solid fa-seedling"></i> Nuevo'
+      : '<i class="fa-sharp-duotone fa-solid fa-user-check"></i> Consolidado';
 
     // Show alert if already attended today
     if (person.asistio_hoy > 0) {
@@ -585,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(err.message, 'error');
     } finally {
       btnSubmitAsistencia.disabled = false;
-      btnSubmitAsistencia.textContent = '✅ Confirmar Asistencia';
+      btnSubmitAsistencia.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-check"></i> Confirmar Asistencia';
     }
   });
 
