@@ -1170,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${state.admin.token}` }
         });
-      } catch (e) { }
+      } catch (e) {}
     }
     state.admin.token = null;
     state.admin.user = null;

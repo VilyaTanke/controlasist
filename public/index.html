@@ -34,8 +34,7 @@
               <span class="live-pulse"></span>
               <span>Sistema Activo</span>
             </div>
-            <button type="button" class="btn-admin-pill" id="btnOpenAdminPanel"
-              title="Panel de Gestión de Administradores">
+            <button type="button" class="btn-admin-pill" id="btnOpenAdminPanel" title="Panel de Gestión de Administradores">
               <i class="fa-sharp-duotone fa-solid fa-user-shield"></i>
               <span>Admin</span>
             </button>
@@ -565,8 +564,7 @@
             <p>Se requiere autorización de Administrador</p>
           </div>
         </div>
-        <button type="button" class="modal-close" id="closeDeleteModalBtn"><i
-            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+        <button type="button" class="modal-close" id="closeDeleteModalBtn"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="deleteAuthForm">
@@ -574,8 +572,7 @@
           <div class="delete-warning-banner">
             <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
             <small style="color: #991b1b; display: block; margin-top: 0.35rem;">
-              <i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Esta acción eliminará el registro de la
-              lista de asistencias.
+              <i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Esta acción eliminará el registro de la lista de asistencias.
             </small>
           </div>
 
@@ -586,22 +583,33 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 0.75rem;">
-              <label class="form-label" for="deleteAdminUser">Usuario Administrador <span
-                  class="required">*</span></label>
+              <label class="form-label" for="deleteAdminUser">Usuario Administrador <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                <input type="text" id="deleteAdminUser" class="form-control" placeholder="Ej: Pastora" value="Pastora"
-                  required autocomplete="username">
+                <input
+                  type="text"
+                  id="deleteAdminUser"
+                  class="form-control"
+                  placeholder="Ej: Pastora"
+                  value="Pastora"
+                  required
+                  autocomplete="username"
+                >
               </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 0.25rem;">
-              <label class="form-label" for="deleteAdminPassword">Contraseña de Administrador <span
-                  class="required">*</span></label>
+              <label class="form-label" for="deleteAdminPassword">Contraseña de Administrador <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                <input type="password" id="deleteAdminPassword" class="form-control"
-                  placeholder="Introduce la contraseña" required autocomplete="current-password">
+                <input
+                  type="password"
+                  id="deleteAdminPassword"
+                  class="form-control"
+                  placeholder="Introduce la contraseña"
+                  required
+                  autocomplete="current-password"
+                >
               </div>
             </div>
 
@@ -634,8 +642,7 @@
             <p>Gestión y creación exclusiva de usuarios Admin</p>
           </div>
         </div>
-        <button type="button" class="modal-close" id="closeAdminModalBtn"><i
-            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+        <button type="button" class="modal-close" id="closeAdminModalBtn"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="modal-body">
@@ -655,8 +662,15 @@
               <label class="form-label" for="loginAdminUser">Usuario Admin <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                <input type="text" id="loginAdminUser" class="form-control" placeholder="Ej: Pastora" value="Pastora"
-                  required autocomplete="username">
+                <input
+                  type="text"
+                  id="loginAdminUser"
+                  class="form-control"
+                  placeholder="Ej: Pastora"
+                  value="Pastora"
+                  required
+                  autocomplete="username"
+                >
               </div>
             </div>
 
@@ -664,8 +678,14 @@
               <label class="form-label" for="loginAdminPass">Contraseña <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                <input type="password" id="loginAdminPass" class="form-control" placeholder="Introduce contraseña"
-                  required autocomplete="current-password">
+                <input
+                  type="password"
+                  id="loginAdminPass"
+                  class="form-control"
+                  placeholder="Introduce contraseña"
+                  required
+                  autocomplete="current-password"
+                >
               </div>
             </div>
 
@@ -685,8 +705,7 @@
             <div class="admin-active-info">
               <i class="fa-sharp-duotone fa-solid fa-circle-check" style="color: #10b981;"></i>
               <span>Sesión activa: <strong id="currentAdminName">Pastora</strong></span>
-              <span class="badge-status badge-consolidado"
-                style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Admin</span>
+              <span class="badge-status badge-consolidado" style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Admin</span>
             </div>
             <button type="button" class="btn btn-sm btn-outline" id="btnLogoutAdmin" title="Cerrar sesión de admin">
               <i class="fa-sharp-duotone fa-solid fa-arrow-right-from-bracket"></i> Salir
@@ -712,12 +731,17 @@
 
             <form id="createAdminForm">
               <div class="form-group">
-                <label class="form-label" for="newAdminUser">Nombre de Usuario Admin <span
-                    class="required">*</span></label>
+                <label class="form-label" for="newAdminUser">Nombre de Usuario Admin <span class="required">*</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                  <input type="text" id="newAdminUser" class="form-control" placeholder="Ej: Pastor Jorge" required
-                    autocomplete="off">
+                  <input
+                    type="text"
+                    id="newAdminUser"
+                    class="form-control"
+                    placeholder="Ej: Pastor Jorge"
+                    required
+                    autocomplete="off"
+                  >
                 </div>
                 <small style="color: var(--text-muted); font-size: 0.72rem; margin-top: 0.25rem; display: block;">
                   Mínimo 3 caracteres. Sólo tendrá rol de Administrador.
@@ -728,18 +752,29 @@
                 <label class="form-label" for="newAdminPass">Contraseña <span class="required">*</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                  <input type="password" id="newAdminPass" class="form-control" placeholder="Mínimo 6 caracteres"
-                    required autocomplete="new-password">
+                  <input
+                    type="password"
+                    id="newAdminPass"
+                    class="form-control"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    autocomplete="new-password"
+                  >
                 </div>
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="newAdminPassConfirm">Confirmar Contraseña <span
-                    class="required">*</span></label>
+                <label class="form-label" for="newAdminPassConfirm">Confirmar Contraseña <span class="required">*</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                  <input type="password" id="newAdminPassConfirm" class="form-control"
-                    placeholder="Repite la contraseña" required autocomplete="new-password">
+                  <input
+                    type="password"
+                    id="newAdminPassConfirm"
+                    class="form-control"
+                    placeholder="Repite la contraseña"
+                    required
+                    autocomplete="new-password"
+                  >
                 </div>
               </div>
 
