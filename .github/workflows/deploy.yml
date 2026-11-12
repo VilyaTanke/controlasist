@@ -28,7 +28,7 @@ jobs:
             if [ ! -d "$APP_DIR" ]; then
               echo "Clonando repositorio por primera vez..."
               sudo mkdir -p /var/www
-              sudo chown -R $USER:$USER /var/www
+              sudo chown -R $(whoami):$(whoami) /var/www
               git clone https://github.com/VilyaTanke/controlasist.git $APP_DIR
               cd $APP_DIR
             else
@@ -44,6 +44,7 @@ jobs:
             # Cargar entorno de Node.js (soporte para nvm y paths estándar)
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PATH="$PATH:/usr/local/bin:/usr/bin:/bin:$HOME/.local/bin"
 
             echo "Instalando dependencias de producción..."
             npm ci --omit=dev
