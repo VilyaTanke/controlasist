@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control NVSR - Iglesia Nueva Vida de Soto del Real</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header Banner Institucional -->
+    <header class="church-header">
+      <div class="header-top">
+        <div class="church-identity">
+          <div class="church-logo-badge">⛪</div>
+          <div class="church-title-group">
+            <h1>Iglesia Nueva Vida de Soto del Real</h1>
+            <p>Sistema Integral de Registro y Control de Asistencia</p>
+          </div>
+        </div>
+
+        <div class="header-meta">
+          <div class="live-badge">
+            <span class="live-pulse"></span>
+            <span>Sistema Activo</span>
+          </div>
+          <div class="header-clock" id="headerClock">Cargando fecha y hora...</div>
+        </div>
+      </div>
+
+      <div class="church-info-cards">
+        <div class="church-info-item">
+          <div class="info-icon">📍</div>
+          <div class="info-content">
+            <span class="info-label">Dirección</span>
+            <span class="info-value">Calle del Prado, 15, 28791 Soto del Real, Madrid</span>
+          </div>
+        </div>
+
+        <div class="church-info-item">
+          <div class="info-icon">⏰</div>
+          <div class="info-content">
+            <span class="info-label">Horario de cultos</span>
+            <span class="info-value">Domingos a las 18:00 h.</span>
+          </div>
+        </div>
+
+        <div class="church-info-item">
+          <div class="info-icon">👥</div>
+          <div class="info-content">
+            <span class="info-label">Pastores principales</span>
+            <span class="info-value">Jorge Gámez Zúñiga y Carmen Vera Mendoza</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Métricas / Estadísticas Resumen -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-content">
+          <p>Total Registrados</p>
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-subtext">Personas en base de datos</div>
+        </div>
+        <div class="stat-icon-wrapper icon-blue">📋</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-content">
+          <p>Nuevos</p>
+          <div class="stat-number" id="statNuevos" style="color: #15803d;">0</div>
+          <div class="stat-subtext">Primeras visitas / contacto</div>
+        </div>
+        <div class="stat-icon-wrapper icon-green">🌱</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-content">
+          <p>Consolidados</p>
+          <div class="stat-number" id="statConsolidados" style="color: #1d4ed8;">0</div>
+          <div class="stat-subtext">Miembros / seguimiento</div>
+        </div>
+        <div class="stat-icon-wrapper icon-indigo">🛡️</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-content">
+          <p>Registrados Hoy</p>
+          <div class="stat-number" id="statHoy" style="color: #d97706;">0</div>
+          <div class="stat-subtext">Atendidos en el culto de hoy</div>
+        </div>
+        <div class="stat-icon-wrapper icon-amber">✨</div>
+      </div>
+    </section>
+
+    <!-- Contenido Principal: Formulario + Tabla -->
+    <main class="main-layout">
+
+      <!-- COLUMNA IZQUIERDA: Formulario de Registro -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2><span>📝</span> Formulario de Registro</h2>
+            <p>Complete los datos para agregar a la base de datos</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <form id="personaForm">
+
+            <!-- Nombre -->
+            <div class="form-group">
+              <label class="form-label" for="inputNombre">
+                Nombre y Apellidos <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-icon">👤</span>
+                <input
+                  type="text"
+                  id="inputNombre"
+                  class="form-control"
+                  placeholder="Ej: Daniel Morales Pérez"
+                  required
+                  autocomplete="name"
+                >
+              </div>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group">
+              <label class="form-label" for="inputTelefono">Teléfono de Contacto</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📞</span>
+                <input
+                  type="tel"
+                  id="inputTelefono"
+                  class="form-control"
+                  placeholder="Ej: 612 34 56 78"
+                  autocomplete="tel"
+                >
+              </div>
+            </div>
+
+            <!-- Dirección -->
+            <div class="form-group">
+              <label class="form-label" for="inputDireccion">Dirección</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🏠</span>
+                <input
+                  type="text"
+                  id="inputDireccion"
+                  class="form-control"
+                  placeholder="Ej: Calle Real, 14, Soto del Real"
+                  autocomplete="street-address"
+                >
+              </div>
+            </div>
+
+            <!-- Cumpleaños -->
+            <div class="form-group">
+              <label class="form-label" for="inputCumpleanos">Fecha de Cumpleaños</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🎂</span>
+                <input
+                  type="date"
+                  id="inputCumpleanos"
+                  class="form-control"
+                >
+              </div>
+            </div>
+
+            <!-- Casilla de Selección: Consolidado o Nuevo -->
+            <div class="form-group">
+              <label class="form-label">
+                Condición del Asistente <span class="required">*</span>
+              </label>
+              <div class="type-selector-container">
+                <!-- Opción: Nuevo -->
+                <label class="type-option option-nuevo selected" id="optionNuevo">
+                  <input type="radio" name="tipoAsistente" id="radioNuevo" value="nuevo" checked>
+                  <div class="custom-checkbox"></div>
+                  <div class="type-label-box">
+                    <span class="type-title">Nuevo</span>
+                    <span class="type-desc">Primera visita</span>
+                  </div>
+                </label>
+
+                <!-- Opción: Consolidado -->
+                <label class="type-option option-consolidado" id="optionConsolidado">
+                  <input type="radio" name="tipoAsistente" id="radioConsolidado" value="consolidado">
+                  <div class="custom-checkbox"></div>
+                  <div class="type-label-box">
+                    <span class="type-title">Consolidado</span>
+                    <span class="type-desc">Miembro / Frecuente</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Fecha y Hora de Registro -->
+            <div class="form-group">
+              <label class="form-label" for="inputFechaHora">
+                Fecha y Hora de Registro
+              </label>
+              <div class="datetime-row">
+                <input
+                  type="datetime-local"
+                  id="inputFechaHora"
+                  class="form-control no-icon"
+                  required
+                >
+                <button type="button" class="btn-now" id="btnSetNow" title="Poner fecha y hora de este instante">
+                  🕒 Ahora
+                </button>
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem; display: block;">
+                Se registra automáticamente en el momento actual.
+              </small>
+            </div>
+
+            <!-- Notas / Petición de oración -->
+            <div class="form-group">
+              <label class="form-label" for="inputNotas">Observaciones / Petición de oración</label>
+              <textarea
+                id="inputNotas"
+                class="form-control"
+                placeholder="Notas adicionales, ujier que atendió, peticiones..."
+              ></textarea>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block">
+                <span>💾</span> Guardar Registro
+              </button>
+              <button type="button" class="btn btn-outline" id="btnReset" title="Limpiar formulario">
+                🧹
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </section>
+
+      <!-- COLUMNA DERECHA: Tabla de Datos y Herramientas -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2><span>📋</span> Listado de Registros</h2>
+            <p id="totalCountLabel">Cargando...</p>
+          </div>
+
+          <!-- Acciones de Exportación e Importación -->
+          <div class="export-actions">
+            <!-- Dropdown Exportar Excel -->
+            <div class="dropdown" id="exportDropdown">
+              <button type="button" class="btn btn-success" id="exportBtn">
+                <span>📥</span>
+                <span>Exportar a Excel</span>
+                <span style="font-size: 0.75rem;">▼</span>
+              </button>
+
+              <div class="dropdown-menu">
+                <button type="button" class="dropdown-item" id="btnExportOriginal">
+                  <span style="font-size: 1.25rem;">📄</span>
+                  <div>
+                    <div class="dropdown-item-title">Formato Plantilla Original</div>
+                    <div class="dropdown-item-desc">Nombres, Teléfono, Cumpleaños, Nuevo, Consolidado</div>
+                  </div>
+                </button>
+
+                <button type="button" class="dropdown-item" id="btnExportFull">
+                  <span style="font-size: 1.25rem;">📑</span>
+                  <div>
+                    <div class="dropdown-item-title">Formato Completo</div>
+                    <div class="dropdown-item-desc">Incluye Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, etc.</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Botón Importar Excel -->
+            <button type="button" class="btn btn-outline" id="btnOpenImport" title="Importar archivo Excel existente">
+              <span>📤</span>
+              <span>Importar Excel</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          <!-- Barra de Búsqueda y Filtros -->
+          <div class="table-toolbar">
+            <div class="toolbar-row">
+              <div class="search-container">
+                <div class="input-wrapper">
+                  <span class="input-icon">🔍</span>
+                  <input
+                    type="text"
+                    id="searchInput"
+                    class="form-control"
+                    placeholder="Buscar por nombre, teléfono, dirección..."
+                  >
+                </div>
+              </div>
+
+              <!-- Filtros por tipo y fecha -->
+              <div class="filter-pills">
+                <button type="button" class="filter-pill active" data-filter="todos">Todos</button>
+                <button type="button" class="filter-pill" data-filter="nuevo">🟢 Nuevos</button>
+                <button type="button" class="filter-pill" data-filter="consolidado">🔵 Consolidados</button>
+                <button type="button" class="filter-pill" data-filter="hoy">📅 Hoy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla con los datos -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="text-align: center; width: 40px;">#</th>
+                  <th>Nombres</th>
+                  <th>Teléfono</th>
+                  <th>Dirección</th>
+                  <th>Cumpleaños</th>
+                  <th>Estado</th>
+                  <th>Fecha de Registro</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- Se llena dinámicamente con JavaScript -->
+              </tbody>
+            </table>
+
+            <!-- Estado Vacío -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+              <div class="empty-icon">📭</div>
+              <h3>No se encontraron registros</h3>
+              <p>Utilice el formulario de la izquierda para registrar nuevos asistentes.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: Editar Registro -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>✏️ Modificar Registro</h3>
+        <button type="button" class="modal-close" id="closeEditModalBtn">&times;</button>
+      </div>
+      <form id="editForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="editNombre">Nombre y Apellidos <span class="required">*</span></label>
+            <input type="text" id="editNombre" class="form-control no-icon" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editTelefono">Teléfono</label>
+            <input type="tel" id="editTelefono" class="form-control no-icon">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editDireccion">Dirección</label>
+            <input type="text" id="editDireccion" class="form-control no-icon">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editCumpleanos">Fecha de Cumpleaños</label>
+            <input type="date" id="editCumpleanos" class="form-control no-icon">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Condición</label>
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="radio" name="editTipo" id="editRadioNuevo" value="nuevo">
+                <span class="badge-status badge-nuevo">🟢 Nuevo</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="radio" name="editTipo" id="editRadioConsolidado" value="consolidado">
+                <span class="badge-status badge-consolidado">🔵 Consolidado</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editFechaHora">Fecha y Hora de Registro</label>
+            <input type="datetime-local" id="editFechaHora" class="form-control no-icon" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editNotas">Observaciones</label>
+            <textarea id="editNotas" class="form-control"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelEditBtn">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirmar Eliminación -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 style="color: #ef4444;">⚠️ Confirmar Eliminación</h3>
+      </div>
+      <div class="modal-body">
+        <p>¿Está seguro de que desea eliminar permanentemente el registro de <strong id="deletePersonName"></strong>?</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Sí, Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Importar Archivo Excel -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📤 Importar Registros desde Excel</h3>
+        <button type="button" class="modal-close" id="closeImportModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
+          Selecciona o arrastra una hoja de cálculo (.xlsx o .xls). El sistema detectará automáticamente las columnas de Nombres, Teléfono, Dirección, Cumpleaños y Estado (Nuevo / Consolidado).
+        </p>
+
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">📊</div>
+          <div style="font-weight: 600; margin-bottom: 0.25rem;">Arrastra tu archivo aquí o haz clic para examinar</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Formatos admitidos: .xlsx, .xls</div>
+          <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;">
+        </div>
+
+        <div id="selectedFileName" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('importModal').classList.remove('open')">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnProcessImport" disabled>Procesar e Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor para Notificaciones Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

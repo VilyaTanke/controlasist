@@ -1,0 +1,34 @@
+{
+  "name": "control-nvsr",
+  "version": "1.0.0",
+  "description": "Sistema de Control y Asistencia - Iglesia Nueva Vida de Soto del Real",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node -e \"console.log('OK')\""
+  },
+  "keywords": [
+    "iglesia",
+    "asistencia",
+    "excel",
+    "consolidacion",
+    "nueva-vida"
+  ],
+  "author": "Control NVSR",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^13.1.1",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "lucide": "^1.2.0",
+    "multer": "^2.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  }
+}
