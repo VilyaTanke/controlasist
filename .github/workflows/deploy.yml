@@ -1,0 +1,60 @@
+name: Deploy to IONOS VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.IONOS_HOST }}
+          username: ${{ secrets.IONOS_USER }}
+          key: ${{ secrets.IONOS_SSH_KEY }}
+          port: ${{ secrets.IONOS_PORT || 22 }}
+          script: |
+            set -e
+            echo "🚀 Iniciando despliegue de Control NVSR en IONOS VPS..."
+
+            # Directorio de la app en el servidor
+            APP_DIR="/var/www/checknvsr"
+
+            # Si el directorio no existe, clonar el repositorio
+            if [ ! -d "$APP_DIR" ]; then
+              echo "Clonando repositorio por primera vez..."
+              sudo mkdir -p /var/www
+              sudo chown -R $USER:$USER /var/www
+              git clone https://github.com/VilyaTanke/controlasist.git $APP_DIR
+              cd $APP_DIR
+            else
+              cd $APP_DIR
+              echo "Descargando últimos cambios de main..."
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            # Asegurar persistencia del directorio de base de datos SQLite
+            mkdir -p data
+
+            # Cargar entorno de Node.js (soporte para nvm y paths estándar)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            echo "Instalando dependencias de producción..."
+            npm ci --omit=dev
+            npm rebuild better-sqlite3
+
+            echo "Reiniciando / recargando proceso con PM2..."
+            if pm2 describe checknvsr > /dev/null 2>&1; then
+              pm2 reload ecosystem.config.cjs --update-env
+            else
+              pm2 start ecosystem.config.cjs
+            fi
+
+            pm2 save
+            echo "✅ Despliegue completado con éxito en checknvsr.lab-amprojs.es."

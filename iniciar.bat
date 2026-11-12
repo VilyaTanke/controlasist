@@ -10,7 +10,7 @@ echo Iniciando servidor local...
 echo.
 
 :: Abre el navegador automáticamente después de 2 segundos
-start "" cmd /c "timeout /t 2 /nobreak > nul && start http://localhost:3000"
+start "" cmd /c "timeout /t 2 /nobreak > nul && start http://localhost:3005"
 
 :: Inicia el servidor Node.js
 node server/index.js
