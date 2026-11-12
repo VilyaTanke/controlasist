@@ -83,7 +83,19 @@ app.get('/api/stats', (req, res) => {
   }
 });
 
-// 3. List personas with optional filters
+// 3. Autocomplete search for personas (used by "Registrar Asistencia" dropdown)
+app.get('/api/personas/search', (req, res) => {
+  try {
+    const q = req.query.q || '';
+    const results = db.searchPersonas(q);
+    res.json(results);
+  } catch (error) {
+    console.error('Error en búsqueda de personas:', error);
+    res.status(500).json({ error: 'Error en la búsqueda' });
+  }
+});
+
+// 4. List personas/asistencias with optional filters
 app.get('/api/personas', (req, res) => {
   try {
     const { search, tipo, dateFrom, dateTo } = req.query;
@@ -92,6 +104,30 @@ app.get('/api/personas', (req, res) => {
   } catch (error) {
     console.error('Error al listar personas:', error);
     res.status(500).json({ error: 'Error al listar personas' });
+  }
+});
+
+// 5. Register attendance for existing persona
+app.post('/api/asistencias', (req, res) => {
+  try {
+    const { persona_id, fecha_hora, tipo, notas } = req.body;
+    const personaIdNum = parseInt(persona_id, 10);
+
+    if (isNaN(personaIdNum) || personaIdNum <= 0) {
+      return res.status(400).json({ error: 'ID de persona inválido' });
+    }
+
+    const asistencia = db.registrarAsistencia({
+      persona_id: personaIdNum,
+      fecha_hora,
+      tipo,
+      notas
+    });
+
+    res.status(201).json(asistencia);
+  } catch (error) {
+    console.error('Error al registrar asistencia:', error);
+    res.status(500).json({ error: error.message || 'Error al registrar la asistencia' });
   }
 });
 

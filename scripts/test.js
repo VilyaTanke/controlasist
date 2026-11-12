@@ -42,6 +42,11 @@ async function runTests() {
 
   // 5. Test Transacción Bulk (createMany)
   console.log('2. Probando inserción masiva en transacción (createMany)...');
+  db.getAll({ search: 'Bulk Test' }).forEach(b => {
+    db.remove(b.id);
+    db.db.prepare('DELETE FROM personas WHERE id = ?').run(b.persona_id);
+  });
+
   const count = db.createMany([
     { nombre: 'Bulk Test 1', tipo: 'nuevo' },
     { nombre: 'Bulk Test 2', tipo: 'consolidado' }
@@ -49,7 +54,10 @@ async function runTests() {
   if (count !== 2) throw new Error('Error en inserción masiva');
   const bulkItems = db.getAll({ search: 'Bulk Test' });
   if (bulkItems.length !== 2) throw new Error('Error al consultar registros bulk');
-  bulkItems.forEach(b => db.remove(b.id));
+  bulkItems.forEach(b => {
+    db.remove(b.id);
+    db.db.prepare('DELETE FROM personas WHERE id = ?').run(b.persona_id);
+  });
   console.log('   Transacción createMany: OK');
 
   // 6. Test Generación de Excel

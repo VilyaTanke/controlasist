@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Control NVSR - Iglesia Nueva Vida de Soto del Real</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
@@ -11,14 +11,14 @@
 
   <div class="app-container">
 
-    <!-- Header Banner Institucional -->
+    <!-- Header Banner Institucional (Mobile First) -->
     <header class="church-header">
       <div class="header-top">
         <div class="church-identity">
           <div class="church-logo-badge">⛪</div>
           <div class="church-title-group">
-            <h1>Iglesia Nueva Vida de Soto del Real</h1>
-            <p>Sistema Integral de Registro y Control de Asistencia</p>
+            <h1>Iglesia Nueva Vida</h1>
+            <p>Soto del Real • Control de Asistencia</p>
           </div>
         </div>
 
@@ -27,342 +27,484 @@
             <span class="live-pulse"></span>
             <span>Sistema Activo</span>
           </div>
-          <div class="header-clock" id="headerClock">Cargando fecha y hora...</div>
+          <div class="header-clock" id="headerClock">Cargando...</div>
         </div>
       </div>
 
-      <div class="church-info-cards">
-        <div class="church-info-item">
-          <div class="info-icon">📍</div>
-          <div class="info-content">
-            <span class="info-label">Dirección</span>
-            <span class="info-value">Calle del Prado, 15, 28791 Soto del Real, Madrid</span>
+      <!-- Info Institucional Colapsable -->
+      <details class="church-info-details">
+        <summary class="church-info-summary">
+          <span>ℹ️ Información de la Iglesia y Cultos</span>
+          <span class="details-arrow">▼</span>
+        </summary>
+        <div class="church-info-cards">
+          <div class="church-info-item">
+            <div class="info-icon">📍</div>
+            <div class="info-content">
+              <span class="info-label">Dirección</span>
+              <span class="info-value">Calle del Prado, 15, 28791 Soto del Real, Madrid</span>
+            </div>
+          </div>
+          <div class="church-info-item">
+            <div class="info-icon">⏰</div>
+            <div class="info-content">
+              <span class="info-label">Horario de cultos</span>
+              <span class="info-value">Domingos a las 18:00 h.</span>
+            </div>
+          </div>
+          <div class="church-info-item">
+            <div class="info-icon">👥</div>
+            <div class="info-content">
+              <span class="info-label">Pastores</span>
+              <span class="info-value">Jorge Gámez Zúñiga y Carmen Vera Mendoza</span>
+            </div>
           </div>
         </div>
-
-        <div class="church-info-item">
-          <div class="info-icon">⏰</div>
-          <div class="info-content">
-            <span class="info-label">Horario de cultos</span>
-            <span class="info-value">Domingos a las 18:00 h.</span>
-          </div>
-        </div>
-
-        <div class="church-info-item">
-          <div class="info-icon">👥</div>
-          <div class="info-content">
-            <span class="info-label">Pastores principales</span>
-            <span class="info-value">Jorge Gámez Zúñiga y Carmen Vera Mendoza</span>
-          </div>
-        </div>
-      </div>
+      </details>
     </header>
 
-    <!-- Métricas / Estadísticas Resumen -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-content">
-          <p>Total Registrados</p>
-          <div class="stat-number" id="statTotal">0</div>
-          <div class="stat-subtext">Personas en base de datos</div>
+    <!-- Resumen rápido del culto actual -->
+    <div class="today-summary-banner">
+      <div class="today-summary-content">
+        <span class="today-title">📅 Culto de Hoy:</span>
+        <span class="today-pill pill-total"><strong id="statHoy">0</strong> Asistencias</span>
+        <span class="today-pill pill-nuevo"><strong id="statNuevos">0</strong> Nuevos</span>
+        <span class="today-pill pill-consolidado"><strong id="statConsolidados">0</strong> Consolidados</span>
+      </div>
+      <div class="today-total-db">
+        Total en Directorio: <strong id="statTotal">0</strong>
+      </div>
+    </div>
+
+    <!-- SECCIÓN PRINCIPAL HERO: LOS DOS BOTONES (MOBILE FIRST) -->
+    <section class="main-hero-actions">
+      <!-- Botón 1: Registrar Asistencia -->
+      <button type="button" class="hero-action-btn action-asistencia" id="btnOpenAsistencia">
+        <div class="hero-btn-icon-wrapper">
+          <span class="hero-btn-icon">📋</span>
         </div>
-        <div class="stat-icon-wrapper icon-blue">📋</div>
+        <div class="hero-btn-content">
+          <div class="hero-btn-badge">Acción Rápida</div>
+          <h2 class="hero-btn-title">Registrar Asistencia</h2>
+          <p class="hero-btn-desc">Buscar por nombre a persona registrada y marcar su asistencia de hoy</p>
+        </div>
+        <div class="hero-btn-arrow">➔</div>
+      </button>
+
+      <!-- Botón 2: Registrar Nuevo -->
+      <button type="button" class="hero-action-btn action-nuevo" id="btnOpenNuevo">
+        <div class="hero-btn-icon-wrapper icon-green">
+          <span class="hero-btn-icon">🌱</span>
+        </div>
+        <div class="hero-btn-content">
+          <div class="hero-btn-badge badge-green">Nueva Persona</div>
+          <h2 class="hero-btn-title">Registrar Nuevo</h2>
+          <p class="hero-btn-desc">Llenar formulario completo para registrar a un nuevo asistente</p>
+        </div>
+        <div class="hero-btn-arrow">➔</div>
+      </button>
+    </section>
+
+    <!-- SECCIÓN: REGISTROS Y ASISTENCIAS -->
+    <section class="card table-card">
+      <div class="card-header">
+        <div class="card-title-group">
+          <h2><span>📋</span> Listado de Asistencias</h2>
+          <p id="totalCountLabel">Cargando...</p>
+        </div>
+
+        <!-- Acciones de Exportación e Importación -->
+        <div class="export-actions">
+          <!-- Dropdown Exportar Excel -->
+          <div class="dropdown" id="exportDropdown">
+            <button type="button" class="btn btn-success" id="exportBtn">
+              <span>📥</span>
+              <span>Exportar</span>
+              <span style="font-size: 0.75rem;">▼</span>
+            </button>
+
+            <div class="dropdown-menu">
+              <button type="button" class="dropdown-item" id="btnExportOriginal">
+                <span style="font-size: 1.25rem;">📄</span>
+                <div>
+                  <div class="dropdown-item-title">Formato Plantilla Original</div>
+                  <div class="dropdown-item-desc">Nombres, Teléfono, Cumpleaños, Nuevo, Consolidado</div>
+                </div>
+              </button>
+
+              <button type="button" class="dropdown-item" id="btnExportFull">
+                <span style="font-size: 1.25rem;">📑</span>
+                <div>
+                  <div class="dropdown-item-title">Formato Completo</div>
+                  <div class="dropdown-item-desc">Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, Notas</div>
+                </div>
+              </button>
+
+              <div class="dropdown-divider"></div>
+
+              <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download title="Descargar archivo .db de SQLite">
+                <span style="font-size: 1.25rem;">💾</span>
+                <div>
+                  <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
+                  <div class="dropdown-item-desc">Descarga íntegra de la base de datos SQLite</div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Botón Importar Excel -->
+          <button type="button" class="btn btn-outline" id="btnOpenImport" title="Importar archivo Excel existente">
+            <span>📤</span>
+            <span class="hide-mobile">Importar</span>
+          </button>
+        </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-content">
-          <p>Nuevos</p>
-          <div class="stat-number" id="statNuevos" style="color: #15803d;">0</div>
-          <div class="stat-subtext">Primeras visitas / contacto</div>
-        </div>
-        <div class="stat-icon-wrapper icon-green">🌱</div>
-      </div>
+      <div class="card-body">
 
-      <div class="stat-card">
-        <div class="stat-content">
-          <p>Consolidados</p>
-          <div class="stat-number" id="statConsolidados" style="color: #1d4ed8;">0</div>
-          <div class="stat-subtext">Miembros / seguimiento</div>
-        </div>
-        <div class="stat-icon-wrapper icon-indigo">🛡️</div>
-      </div>
+        <!-- Barra de Búsqueda y Filtros -->
+        <div class="table-toolbar">
+          <div class="toolbar-row">
+            <div class="search-container">
+              <div class="input-wrapper">
+                <span class="input-icon">🔍</span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  class="form-control"
+                  placeholder="Buscar en asistencias por nombre, teléfono..."
+                  autocomplete="off"
+                >
+                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda" style="display: none;">✕</button>
+              </div>
+            </div>
 
-      <div class="stat-card">
-        <div class="stat-content">
-          <p>Registrados Hoy</p>
-          <div class="stat-number" id="statHoy" style="color: #d97706;">0</div>
-          <div class="stat-subtext">Atendidos en el culto de hoy</div>
+            <!-- Filtros por tipo y fecha -->
+            <div class="filter-pills">
+              <button type="button" class="filter-pill active" data-filter="hoy">📅 Hoy</button>
+              <button type="button" class="filter-pill" data-filter="todos">Todos</button>
+              <button type="button" class="filter-pill" data-filter="nuevo">🟢 Nuevos</button>
+              <button type="button" class="filter-pill" data-filter="consolidado">🔵 Consolidados</button>
+            </div>
+          </div>
         </div>
-        <div class="stat-icon-wrapper icon-amber">✨</div>
+
+        <!-- Tabla con los datos -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="text-align: center; width: 40px;">#</th>
+                <th>Nombres</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Cumpleaños</th>
+                <th>Estado</th>
+                <th>Fecha y Hora</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Se llena dinámicamente con JavaScript -->
+            </tbody>
+          </table>
+
+          <!-- Estado Vacío -->
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">📭</div>
+            <h3>No se encontraron asistencias</h3>
+            <p>Usa los botones superiores para registrar asistencia o crear un nuevo asistente.</p>
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <!-- Contenido Principal: Formulario + Tabla -->
-    <main class="main-layout">
+  </div>
 
-      <!-- COLUMNA IZQUIERDA: Formulario de Registro -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title-group">
-            <h2><span>📝</span> Formulario de Registro</h2>
-            <p>Complete los datos para agregar a la base de datos</p>
+  <!-- ======================================================== -->
+  <!-- MODAL 1: REGISTRAR ASISTENCIA (Buscador + Check)         -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="asistenciaModal">
+    <div class="modal-content modal-asistencia">
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <span class="modal-header-icon">📋</span>
+          <div>
+            <h3>Registrar Asistencia</h3>
+            <p>Busca a la persona registrada y marca su asistencia de hoy</p>
           </div>
         </div>
+        <button type="button" class="modal-close" id="closeAsistenciaModalBtn">&times;</button>
+      </div>
 
-        <div class="card-body">
-          <form id="personaForm">
+      <form id="asistenciaForm">
+        <div class="modal-body">
 
-            <!-- Nombre -->
-            <div class="form-group">
-              <label class="form-label" for="inputNombre">
-                Nombre y Apellidos <span class="required">*</span>
-              </label>
+          <!-- Buscador con Desplegable -->
+          <div class="form-group">
+            <label class="form-label" for="asistSearchInput">
+              Buscar Persona Registrada <span class="required">*</span>
+            </label>
+            <div class="searchable-dropdown-wrapper">
               <div class="input-wrapper">
-                <span class="input-icon">👤</span>
+                <span class="input-icon">🔍</span>
                 <input
                   type="text"
-                  id="inputNombre"
+                  id="asistSearchInput"
                   class="form-control"
-                  placeholder="Ej: Daniel Morales Pérez"
-                  required
-                  autocomplete="name"
+                  placeholder="Escribe el nombre o teléfono..."
+                  autocomplete="off"
                 >
+                <button type="button" id="asistClearBtn" class="clear-search-btn" style="display: none;">✕</button>
+              </div>
+
+              <!-- Lista desplegable emergente de sugerencias -->
+              <div class="dropdown-results-container" id="asistDropdownResults" style="display: none;">
+                <!-- Se llena dinámicamente -->
               </div>
             </div>
-
-            <!-- Teléfono -->
-            <div class="form-group">
-              <label class="form-label" for="inputTelefono">Teléfono de Contacto</label>
-              <div class="input-wrapper">
-                <span class="input-icon">📞</span>
-                <input
-                  type="tel"
-                  id="inputTelefono"
-                  class="form-control"
-                  placeholder="Ej: 612 34 56 78"
-                  autocomplete="tel"
-                >
-              </div>
-            </div>
-
-            <!-- Dirección -->
-            <div class="form-group">
-              <label class="form-label" for="inputDireccion">Dirección</label>
-              <div class="input-wrapper">
-                <span class="input-icon">🏠</span>
-                <input
-                  type="text"
-                  id="inputDireccion"
-                  class="form-control"
-                  placeholder="Ej: Calle Real, 14, Soto del Real"
-                  autocomplete="street-address"
-                >
-              </div>
-            </div>
-
-            <!-- Cumpleaños -->
-            <div class="form-group">
-              <label class="form-label" for="inputCumpleanos">Fecha de Cumpleaños</label>
-              <div class="input-wrapper">
-                <span class="input-icon">🎂</span>
-                <input
-                  type="date"
-                  id="inputCumpleanos"
-                  class="form-control"
-                >
-              </div>
-            </div>
-
-            <!-- Casilla de Selección: Consolidado o Nuevo -->
-            <div class="form-group">
-              <label class="form-label">
-                Condición del Asistente <span class="required">*</span>
-              </label>
-              <div class="type-selector-container">
-                <!-- Opción: Nuevo -->
-                <label class="type-option option-nuevo selected" id="optionNuevo">
-                  <input type="radio" name="tipoAsistente" id="radioNuevo" value="nuevo" checked>
-                  <div class="custom-checkbox"></div>
-                  <div class="type-label-box">
-                    <span class="type-title">Nuevo</span>
-                    <span class="type-desc">Primera visita</span>
-                  </div>
-                </label>
-
-                <!-- Opción: Consolidado -->
-                <label class="type-option option-consolidado" id="optionConsolidado">
-                  <input type="radio" name="tipoAsistente" id="radioConsolidado" value="consolidado">
-                  <div class="custom-checkbox"></div>
-                  <div class="type-label-box">
-                    <span class="type-title">Consolidado</span>
-                    <span class="type-desc">Miembro / Frecuente</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <!-- Fecha y Hora de Registro -->
-            <div class="form-group">
-              <label class="form-label" for="inputFechaHora">
-                Fecha y Hora de Registro
-              </label>
-              <div class="datetime-row">
-                <input
-                  type="datetime-local"
-                  id="inputFechaHora"
-                  class="form-control no-icon"
-                  required
-                >
-                <button type="button" class="btn-now" id="btnSetNow" title="Poner fecha y hora de este instante">
-                  🕒 Ahora
-                </button>
-              </div>
-              <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem; display: block;">
-                Se registra automáticamente en el momento actual.
-              </small>
-            </div>
-
-            <!-- Notas / Petición de oración -->
-            <div class="form-group">
-              <label class="form-label" for="inputNotas">Observaciones / Petición de oración</label>
-              <textarea
-                id="inputNotas"
-                class="form-control"
-                placeholder="Notas adicionales, ujier que atendió, peticiones..."
-              ></textarea>
-            </div>
-
-            <!-- Botones de Acción -->
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary btn-block">
-                <span>💾</span> Guardar Registro
-              </button>
-              <button type="button" class="btn btn-outline" id="btnReset" title="Limpiar formulario">
-                🧹
-              </button>
-            </div>
-
-          </form>
-        </div>
-      </section>
-
-      <!-- COLUMNA DERECHA: Tabla de Datos y Herramientas -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title-group">
-            <h2><span>📋</span> Listado de Registros</h2>
-            <p id="totalCountLabel">Cargando...</p>
+            <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.35rem; display: block;">
+              Escribe las primeras letras del nombre para seleccionarlo de la lista.
+            </small>
           </div>
 
-          <!-- Acciones de Exportación e Importación -->
-          <div class="export-actions">
-            <!-- Dropdown Exportar Excel -->
-            <div class="dropdown" id="exportDropdown">
-              <button type="button" class="btn btn-success" id="exportBtn">
-                <span>📥</span>
-                <span>Exportar a Excel</span>
-                <span style="font-size: 0.75rem;">▼</span>
-              </button>
-
-              <div class="dropdown-menu">
-                <button type="button" class="dropdown-item" id="btnExportOriginal">
-                  <span style="font-size: 1.25rem;">📄</span>
-                  <div>
-                    <div class="dropdown-item-title">Formato Plantilla Original</div>
-                    <div class="dropdown-item-desc">Nombres, Teléfono, Cumpleaños, Nuevo, Consolidado</div>
-                  </div>
-                </button>
-
-                <button type="button" class="dropdown-item" id="btnExportFull">
-                  <span style="font-size: 1.25rem;">📑</span>
-                  <div>
-                    <div class="dropdown-item-title">Formato Completo</div>
-                    <div class="dropdown-item-desc">Incluye Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, etc.</div>
-                  </div>
-                </button>
-
-                <div class="dropdown-divider"></div>
-
-                <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download title="Descargar archivo .db de SQLite">
-                  <span style="font-size: 1.25rem;">💾</span>
-                  <div>
-                    <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
-                    <div class="dropdown-item-desc">Descarga íntegra de la base de datos SQLite</div>
-                  </div>
-                </a>
-              </div>
-            </div>
-
-            <!-- Botón Importar Excel -->
-            <button type="button" class="btn btn-outline" id="btnOpenImport" title="Importar archivo Excel existente">
-              <span>📤</span>
-              <span>Importar Excel</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="card-body">
-
-          <!-- Barra de Búsqueda y Filtros -->
-          <div class="table-toolbar">
-            <div class="toolbar-row">
-              <div class="search-container">
-                <div class="input-wrapper">
-                  <span class="input-icon">🔍</span>
-                  <input
-                    type="text"
-                    id="searchInput"
-                    class="form-control"
-                    placeholder="Buscar por nombre, teléfono, dirección..."
-                    autocomplete="off"
-                  >
-                  <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda" style="display: none;">✕</button>
+          <!-- Tarjeta de Persona Seleccionada -->
+          <div class="selected-person-card" id="selectedPersonCard" style="display: none;">
+            <div class="selected-person-header">
+              <div class="selected-person-avatar" id="selectedPersonAvatar">👤</div>
+              <div class="selected-person-info">
+                <h4 id="selectedPersonName">-</h4>
+                <div class="selected-person-meta">
+                  <span class="badge-status" id="selectedPersonBadge">-</span>
+                  <span id="selectedPersonPhone" class="selected-person-phone">-</span>
                 </div>
               </div>
+              <button type="button" class="btn-change-person" id="btnChangePerson" title="Cambiar persona">
+                Cambiar
+              </button>
+            </div>
 
-              <!-- Filtros por tipo y fecha -->
-              <div class="filter-pills">
-                <button type="button" class="filter-pill active" data-filter="todos">Todos</button>
-                <button type="button" class="filter-pill" data-filter="nuevo">🟢 Nuevos</button>
-                <button type="button" class="filter-pill" data-filter="consolidado">🔵 Consolidados</button>
-                <button type="button" class="filter-pill" data-filter="hoy">📅 Hoy</button>
-              </div>
+            <!-- Alerta si ya asistió hoy -->
+            <div class="already-attended-alert" id="alreadyAttendedAlert" style="display: none;">
+              ⚠️ Esta persona ya tiene una asistencia registrada para el culto de hoy.
             </div>
           </div>
 
-          <!-- Tabla con los datos -->
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th style="text-align: center; width: 40px;">#</th>
-                  <th>Nombres</th>
-                  <th>Teléfono</th>
-                  <th>Dirección</th>
-                  <th>Cumpleaños</th>
-                  <th>Estado</th>
-                  <th>Fecha de Registro</th>
-                  <th style="text-align: right;">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tableBody">
-                <!-- Se llena dinámicamente con JavaScript -->
-              </tbody>
-            </table>
+          <!-- CHECK PARA MARCAR ASISTENCIA (REQUERIMIENTO CLAVE) -->
+          <div class="form-group attendance-check-group" id="attendanceCheckGroup">
+            <label class="attendance-check-card" for="checkMarcarAsistencia">
+              <input type="checkbox" id="checkMarcarAsistencia" checked>
+              <div class="custom-checkbox-big"></div>
+              <div class="attendance-check-text">
+                <strong class="check-title">Marcar Asistencia para Hoy</strong>
+                <span class="check-subtitle" id="asistFechaHoraDisplay">Culto de hoy: cargando...</span>
+              </div>
+            </label>
+          </div>
 
-            <!-- Estado Vacío -->
-            <div class="empty-state" id="emptyState" style="display: none;">
-              <div class="empty-icon">📭</div>
-              <h3>No se encontraron registros</h3>
-              <p>Utilice el formulario de la izquierda para registrar nuevos asistentes.</p>
+          <!-- Condición (Permite cambiar o confirmar: Nuevo / Consolidado) -->
+          <div class="form-group" id="asistTipoGroup" style="display: none;">
+            <label class="form-label">Condición del Asistente</label>
+            <div class="type-selector-container">
+              <label class="type-option option-nuevo" id="asistOptionNuevo">
+                <input type="radio" name="asistTipo" id="asistRadioNuevo" value="nuevo">
+                <div class="custom-checkbox"></div>
+                <div class="type-label-box">
+                  <span class="type-title">Nuevo</span>
+                  <span class="type-desc">Primera visita</span>
+                </div>
+              </label>
+
+              <label class="type-option option-consolidado" id="asistOptionConsolidado">
+                <input type="radio" name="asistTipo" id="asistRadioConsolidado" value="consolidado">
+                <div class="custom-checkbox"></div>
+                <div class="type-label-box">
+                  <span class="type-title">Consolidado</span>
+                  <span class="type-desc">Miembro / Frecuente</span>
+                </div>
+              </label>
             </div>
+          </div>
+
+          <!-- Observaciones / Petición de oración opcional -->
+          <div class="form-group" id="asistNotasGroup" style="display: none;">
+            <label class="form-label" for="asistNotas">Observaciones / Petición de oración</label>
+            <textarea
+              id="asistNotas"
+              class="form-control"
+              placeholder="Notas del culto de hoy, peticiones de oración, ujier que atendió..."
+              rows="2"
+            ></textarea>
+          </div>
+
+          <!-- Mensaje para invitar a registrar nuevo si no se encuentra -->
+          <div class="not-found-prompt" id="notFoundPrompt" style="display: none;">
+            <p>¿No encuentras a la persona en la lista?</p>
+            <button type="button" class="btn btn-sm btn-outline" id="btnSwitchToNuevo">
+              🌱 Registrar como Nuevo Asistente
+            </button>
           </div>
 
         </div>
-      </section>
 
-    </main>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelAsistenciaBtn">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitAsistencia" disabled>
+            ✅ Confirmar Asistencia
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
+  <!-- ======================================================== -->
+  <!-- MODAL 2: REGISTRAR NUEVO (Formulario Completo)           -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="nuevoModal">
+    <div class="modal-content modal-nuevo">
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <span class="modal-header-icon">🌱</span>
+          <div>
+            <h3>Registrar Nuevo Asistente</h3>
+            <p>Formulario completo de datos personales y primera asistencia</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="closeNuevoModalBtn">&times;</button>
+      </div>
+
+      <form id="nuevoPersonaForm">
+        <div class="modal-body">
+
+          <!-- Nombre -->
+          <div class="form-group">
+            <label class="form-label" for="nuevoInputNombre">
+              Nombre y Apellidos <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input
+                type="text"
+                id="nuevoInputNombre"
+                class="form-control"
+                placeholder="Ej: Daniel Morales Pérez"
+                required
+                autocomplete="name"
+              >
+            </div>
+          </div>
+
+          <!-- Teléfono -->
+          <div class="form-group">
+            <label class="form-label" for="nuevoInputTelefono">Teléfono de Contacto</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📞</span>
+              <input
+                type="tel"
+                id="nuevoInputTelefono"
+                class="form-control"
+                placeholder="Ej: 612 34 56 78"
+                autocomplete="tel"
+              >
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <div class="form-group">
+            <label class="form-label" for="nuevoInputDireccion">Dirección</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🏠</span>
+              <input
+                type="text"
+                id="nuevoInputDireccion"
+                class="form-control"
+                placeholder="Ej: Calle Real, 14, Soto del Real"
+                autocomplete="street-address"
+              >
+            </div>
+          </div>
+
+          <!-- Cumpleaños -->
+          <div class="form-group">
+            <label class="form-label" for="nuevoInputCumpleanos">Fecha de Cumpleaños</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🎂</span>
+              <input
+                type="date"
+                id="nuevoInputCumpleanos"
+                class="form-control"
+              >
+            </div>
+          </div>
+
+          <!-- Casilla de Selección: Consolidado o Nuevo -->
+          <div class="form-group">
+            <label class="form-label">
+              Condición del Asistente <span class="required">*</span>
+            </label>
+            <div class="type-selector-container">
+              <!-- Opción: Nuevo -->
+              <label class="type-option option-nuevo selected" id="nuevoOptionNuevo">
+                <input type="radio" name="nuevoTipoAsistente" id="nuevoRadioNuevo" value="nuevo" checked>
+                <div class="custom-checkbox"></div>
+                <div class="type-label-box">
+                  <span class="type-title">Nuevo</span>
+                  <span class="type-desc">Primera visita</span>
+                </div>
+              </label>
+
+              <!-- Opción: Consolidado -->
+              <label class="type-option option-consolidado" id="nuevoOptionConsolidado">
+                <input type="radio" name="nuevoTipoAsistente" id="nuevoRadioConsolidado" value="consolidado">
+                <div class="custom-checkbox"></div>
+                <div class="type-label-box">
+                  <span class="type-title">Consolidado</span>
+                  <span class="type-desc">Miembro / Frecuente</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Fecha y Hora de Registro -->
+          <div class="form-group">
+            <label class="form-label" for="nuevoInputFechaHora">
+              Fecha y Hora de Registro
+            </label>
+            <div class="datetime-row">
+              <input
+                type="datetime-local"
+                id="nuevoInputFechaHora"
+                class="form-control no-icon"
+                required
+              >
+              <button type="button" class="btn-now" id="nuevoBtnSetNow" title="Poner fecha y hora de este instante">
+                🕒 Ahora
+              </button>
+            </div>
+          </div>
+
+          <!-- Notas / Petición de oración -->
+          <div class="form-group">
+            <label class="form-label" for="nuevoInputNotas">Observaciones / Petición de oración</label>
+            <textarea
+              id="nuevoInputNotas"
+              class="form-control"
+              placeholder="Notas adicionales, ujier que atendió, peticiones..."
+              rows="2"
+            ></textarea>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelNuevoBtn">Cancelar</button>
+          <button type="submit" class="btn btn-success" id="btnSubmitNuevo">
+            💾 Guardar y Registrar
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL: Editar Registro -->
@@ -409,13 +551,13 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="editFechaHora">Fecha y Hora de Registro</label>
+            <label class="form-label" for="editFechaHora">Fecha y Hora</label>
             <input type="datetime-local" id="editFechaHora" class="form-control no-icon" required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="editNotas">Observaciones</label>
-            <textarea id="editNotas" class="form-control"></textarea>
+            <textarea id="editNotas" class="form-control" rows="2"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -433,8 +575,8 @@
         <h3 style="color: #ef4444;">⚠️ Confirmar Eliminación</h3>
       </div>
       <div class="modal-body">
-        <p>¿Está seguro de que desea eliminar permanentemente el registro de <strong id="deletePersonName"></strong>?</p>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción no se puede deshacer.</p>
+        <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción eliminará el registro de la lista de asistencias.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
@@ -452,7 +594,7 @@
       </div>
       <div class="modal-body">
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
-          Selecciona o arrastra una hoja de cálculo (.xlsx o .xls). El sistema detectará automáticamente las columnas de Nombres, Teléfono, Dirección, Cumpleaños y Estado (Nuevo / Consolidado).
+          Selecciona o arrastra una hoja de cálculo (.xlsx o .xls). El sistema detectará automáticamente las columnas.
         </p>
 
         <div class="dropzone" id="dropzone">
@@ -477,4 +619,3 @@
   <script src="js/app.js"></script>
 </body>
 </html>
-

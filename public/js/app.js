@@ -1,34 +1,24 @@
-// ControlNVSR - Client Application
+// ControlNVSR - Client Application (Mobile First)
 document.addEventListener('DOMContentLoaded', () => {
   // App State
   const state = {
-    personas: [],
+    asistencias: [],
     stats: { total: 0, nuevos: 0, consolidados: 0, hoy: 0 },
     filters: {
       search: '',
       tipo: 'todos',
-      dateFilter: 'todos'
+      dateFilter: 'hoy' // Default to today's service!
     },
+    selectedPerson: null,
     editingId: null,
     deleteId: null
   };
 
-  // DOM Elements
-  const form = document.getElementById('personaForm');
-  const inputNombre = document.getElementById('inputNombre');
-  const inputTelefono = document.getElementById('inputTelefono');
-  const inputDireccion = document.getElementById('inputDireccion');
-  const inputCumpleanos = document.getElementById('inputCumpleanos');
-  const inputFechaHora = document.getElementById('inputFechaHora');
-  const inputNotas = document.getElementById('inputNotas');
-  const btnSetNow = document.getElementById('btnSetNow');
-  const btnReset = document.getElementById('btnReset');
+  // --- DOM Elements ---
 
-  // Radio Options for Nuevo / Consolidado
-  const optionNuevo = document.getElementById('optionNuevo');
-  const optionConsolidado = document.getElementById('optionConsolidado');
-  const radioNuevo = document.getElementById('radioNuevo');
-  const radioConsolidado = document.getElementById('radioConsolidado');
+  // Main Action Buttons
+  const btnOpenAsistencia = document.getElementById('btnOpenAsistencia');
+  const btnOpenNuevo = document.getElementById('btnOpenNuevo');
 
   // Stats Elements
   const statTotal = document.getElementById('statTotal');
@@ -36,7 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const statConsolidados = document.getElementById('statConsolidados');
   const statHoy = document.getElementById('statHoy');
 
-  // Table and Toolbar Elements
+  // Clock
+  const clockElement = document.getElementById('headerClock');
+
+  // Table and Toolbar
   const tableBody = document.getElementById('tableBody');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
@@ -49,20 +42,65 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('exportBtn');
   const btnExportOriginal = document.getElementById('btnExportOriginal');
   const btnExportFull = document.getElementById('btnExportFull');
+  const btnBackupDb = document.getElementById('btnBackupDb');
 
-  // Modals
+  // --- MODAL: REGISTRAR ASISTENCIA ---
+  const asistenciaModal = document.getElementById('asistenciaModal');
+  const closeAsistenciaModalBtn = document.getElementById('closeAsistenciaModalBtn');
+  const cancelAsistenciaBtn = document.getElementById('cancelAsistenciaBtn');
+  const asistenciaForm = document.getElementById('asistenciaForm');
+  const asistSearchInput = document.getElementById('asistSearchInput');
+  const asistClearBtn = document.getElementById('asistClearBtn');
+  const asistDropdownResults = document.getElementById('asistDropdownResults');
+  const selectedPersonCard = document.getElementById('selectedPersonCard');
+  const selectedPersonName = document.getElementById('selectedPersonName');
+  const selectedPersonBadge = document.getElementById('selectedPersonBadge');
+  const selectedPersonPhone = document.getElementById('selectedPersonPhone');
+  const alreadyAttendedAlert = document.getElementById('alreadyAttendedAlert');
+  const btnChangePerson = document.getElementById('btnChangePerson');
+  const checkMarcarAsistencia = document.getElementById('checkMarcarAsistencia');
+  const asistFechaHoraDisplay = document.getElementById('asistFechaHoraDisplay');
+  const asistTipoGroup = document.getElementById('asistTipoGroup');
+  const asistOptionNuevo = document.getElementById('asistOptionNuevo');
+  const asistOptionConsolidado = document.getElementById('asistOptionConsolidado');
+  const asistRadioNuevo = document.getElementById('asistRadioNuevo');
+  const asistRadioConsolidado = document.getElementById('asistRadioConsolidado');
+  const asistNotasGroup = document.getElementById('asistNotasGroup');
+  const asistNotas = document.getElementById('asistNotas');
+  const notFoundPrompt = document.getElementById('notFoundPrompt');
+  const btnSwitchToNuevo = document.getElementById('btnSwitchToNuevo');
+  const btnSubmitAsistencia = document.getElementById('btnSubmitAsistencia');
+
+  // --- MODAL: REGISTRAR NUEVO (Formulario Completo) ---
+  const nuevoModal = document.getElementById('nuevoModal');
+  const closeNuevoModalBtn = document.getElementById('closeNuevoModalBtn');
+  const cancelNuevoBtn = document.getElementById('cancelNuevoBtn');
+  const nuevoPersonaForm = document.getElementById('nuevoPersonaForm');
+  const nuevoInputNombre = document.getElementById('nuevoInputNombre');
+  const nuevoInputTelefono = document.getElementById('nuevoInputTelefono');
+  const nuevoInputDireccion = document.getElementById('nuevoInputDireccion');
+  const nuevoInputCumpleanos = document.getElementById('nuevoInputCumpleanos');
+  const nuevoInputFechaHora = document.getElementById('nuevoInputFechaHora');
+  const nuevoBtnSetNow = document.getElementById('nuevoBtnSetNow');
+  const nuevoInputNotas = document.getElementById('nuevoInputNotas');
+  const nuevoOptionNuevo = document.getElementById('nuevoOptionNuevo');
+  const nuevoOptionConsolidado = document.getElementById('nuevoOptionConsolidado');
+  const nuevoRadioNuevo = document.getElementById('nuevoRadioNuevo');
+  const nuevoRadioConsolidado = document.getElementById('nuevoRadioConsolidado');
+
+  // --- MODAL: EDITAR REGISTRO ---
   const editModal = document.getElementById('editModal');
   const editForm = document.getElementById('editForm');
   const closeEditModalBtn = document.getElementById('closeEditModalBtn');
   const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-  // Delete Modal
+  // --- MODAL: ELIMINAR ---
   const deleteModal = document.getElementById('deleteModal');
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
   const deletePersonName = document.getElementById('deletePersonName');
 
-  // Import Modal
+  // --- MODAL: IMPORTAR EXCEL ---
   const importModal = document.getElementById('importModal');
   const btnOpenImport = document.getElementById('btnOpenImport');
   const closeImportModalBtn = document.getElementById('closeImportModalBtn');
@@ -71,12 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnProcessImport = document.getElementById('btnProcessImport');
   const selectedFileName = document.getElementById('selectedFileName');
 
-  // Clock
-  const clockElement = document.getElementById('headerClock');
-
   // --- HELPER FUNCTIONS ---
 
-  // Format date-time for datetime-local input: "YYYY-MM-DDTHH:mm"
   function getLocalDateTimeString(date = new Date()) {
     const pad = (n) => String(n).padStart(2, '0');
     const y = date.getFullYear();
@@ -87,55 +121,54 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${y}-${m}-${d}T${h}:${min}`;
   }
 
-  // Format local date only: "YYYY-MM-DD"
   function getLocalDateString(date = new Date()) {
     const pad = (n) => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
-  // Set default current time in registration form
-  function resetDateTimeInput() {
-    if (inputFechaHora) {
-      inputFechaHora.value = getLocalDateTimeString();
-    }
-  }
-
-  // Format human readable date
   function formatDisplayDate(dateStr) {
     if (!dateStr) return '-';
     try {
       const clean = dateStr.replace(' ', 'T');
       const d = new Date(clean);
       if (isNaN(d.getTime())) return dateStr;
-      
+
       const day = d.getDate();
       const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
       const month = months[d.getMonth()];
       const year = d.getFullYear();
       const hours = String(d.getHours()).padStart(2, '0');
       const mins = String(d.getMinutes()).padStart(2, '0');
-      
+
       return `${day} ${month} ${year}, ${hours}:${mins}`;
     } catch (e) {
       return dateStr;
     }
   }
 
-  // Live Clock in Header
+  function formatTodayServiceText() {
+    const now = new Date();
+    const options = { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+    const str = now.toLocaleDateString('es-ES', options);
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   function startClock() {
     const update = () => {
       const now = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      const options = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
       if (clockElement) {
         const text = now.toLocaleDateString('es-ES', options);
-        clockElement.textContent = text.charAt(0).toUpperCase() + text.slice(1);
+        clockElement.textContent = text;
+      }
+      if (asistFechaHoraDisplay) {
+        asistFechaHoraDisplay.textContent = `Culto: ${formatTodayServiceText()}`;
       }
     };
     update();
-    setInterval(update, 1000);
+    setInterval(update, 30000);
   }
 
-  // Toast Notification
   function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -151,30 +184,32 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.style.transform = 'translateX(20px)';
       toast.style.transition = 'all 0.3s ease';
       setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    }, 3500);
   }
 
-  // Handle Radio Option Styling
-  function updateTypeSelection(selectedType) {
-    if (selectedType === 'nuevo') {
-      radioNuevo.checked = true;
-      optionNuevo.classList.add('selected');
-      optionConsolidado.classList.remove('selected');
-    } else {
-      radioConsolidado.checked = true;
-      optionConsolidado.classList.add('selected');
-      optionNuevo.classList.remove('selected');
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag));
+  }
+
+  function formatWhatsAppLink(phone, name) {
+    if (!phone) return null;
+    let clean = phone.replace(/\D/g, '');
+    if (clean.startsWith('00')) clean = clean.slice(2);
+    if (clean.length === 9 && (clean.startsWith('6') || clean.startsWith('7'))) {
+      clean = '34' + clean;
     }
-  }
-
-  optionNuevo.addEventListener('click', () => updateTypeSelection('nuevo'));
-  optionConsolidado.addEventListener('click', () => updateTypeSelection('consolidado'));
-
-  if (btnSetNow) {
-    btnSetNow.addEventListener('click', () => {
-      resetDateTimeInput();
-      showToast('Fecha y hora actualizadas al momento actual', 'success');
-    });
+    if (clean.length < 9) return null;
+    const firstName = name ? name.trim().split(' ')[0] : '';
+    const greeting = firstName ? `¡Hola ${firstName}!` : '¡Hola!';
+    const message = encodeURIComponent(`${greeting} Te saludamos de la Iglesia Nueva Vida de Soto del Real. Nos alegra tenerte con nosotros.`);
+    return `https://wa.me/${clean}?text=${message}`;
   }
 
   // --- API CALLS ---
@@ -191,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function fetchPersonas() {
+  async function fetchAsistencias() {
     try {
       const params = new URLSearchParams();
       if (state.filters.search) params.append('search', state.filters.search);
@@ -204,9 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const res = await fetch(`/api/personas?${params.toString()}`);
-      if (!res.ok) throw new Error('Error al cargar datos');
+      if (!res.ok) throw new Error('Error al cargar registros');
       const data = await res.json();
-      state.personas = data;
+      state.asistencias = data;
       renderTable();
     } catch (err) {
       console.error(err);
@@ -214,39 +249,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render Stats
   function renderStats() {
-    const { total, nuevos, consolidados, hoy } = state.stats;
-    statTotal.textContent = total;
-    statNuevos.textContent = nuevos;
-    statConsolidados.textContent = consolidados;
-    statHoy.textContent = hoy;
+    const { totalPersonas, hoy, nuevos, consolidados } = state.stats;
+    if (statTotal) statTotal.textContent = totalPersonas || 0;
+    if (statHoy) statHoy.textContent = hoy || 0;
+    if (statNuevos) statNuevos.textContent = nuevos || 0;
+    if (statConsolidados) statConsolidados.textContent = consolidados || 0;
   }
 
-  // Clean phone number for WhatsApp link
-  function formatWhatsAppLink(phone, name) {
-    if (!phone) return null;
-    let clean = phone.replace(/\D/g, '');
-    if (clean.startsWith('00')) clean = clean.slice(2);
-    if (clean.length === 9 && (clean.startsWith('6') || clean.startsWith('7'))) {
-      clean = '34' + clean;
-    }
-    if (clean.length < 9) return null;
-    const firstName = name ? name.trim().split(' ')[0] : '';
-    const greeting = firstName ? `¡Hola ${firstName}!` : '¡Hola!';
-    const message = encodeURIComponent(`${greeting} Te saludamos cordialmente de la Iglesia Nueva Vida de Soto del Real. Nos alegramos de tenerte con nosotros.`);
-    return `https://wa.me/${clean}?text=${message}`;
-  }
-
-  // Render Table Rows
+  // Render Table / Cards
   function renderTable() {
     tableBody.innerHTML = '';
 
     if (totalCountLabel) {
-      totalCountLabel.textContent = `${state.personas.length} registro${state.personas.length === 1 ? '' : 's'}`;
+      const labelText = state.filters.dateFilter === 'hoy' ? 'asistencias hoy' : 'registros';
+      totalCountLabel.textContent = `${state.asistencias.length} ${labelText}`;
     }
 
-    if (state.personas.length === 0) {
+    if (state.asistencias.length === 0) {
       tableBody.parentElement.style.display = 'none';
       emptyState.style.display = 'block';
       return;
@@ -255,9 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tableBody.parentElement.style.display = 'table';
     emptyState.style.display = 'none';
 
-    state.personas.forEach((p, index) => {
+    state.asistencias.forEach((p, index) => {
       const tr = document.createElement('tr');
-
       const isNuevo = p.tipo === 'nuevo';
       const badgeClass = isNuevo ? 'badge-nuevo' : 'badge-consolidado';
       const badgeText = isNuevo ? '🟢 Nuevo' : '🔵 Consolidado';
@@ -275,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display: flex; align-items: center;">
               <a href="tel:${escapeHtml(p.telefono)}" class="phone-link">${escapeHtml(p.telefono)}</a>
               ${waLink ? `
-                <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="whatsapp-btn" title="Contactar por WhatsApp">
+                <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="whatsapp-btn" title="Enviar WhatsApp de bienvenida">
                   💬
                 </a>
               ` : ''}
@@ -299,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tableBody.appendChild(tr);
     });
 
-    // Attach Event Listeners to Action Buttons
+    // Attach row events
     document.querySelectorAll('.btn-edit').forEach(btn => {
       btn.addEventListener('click', () => openEditModal(btn.dataset.id));
     });
@@ -309,53 +328,328 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
-      tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      }[tag] || tag)
-    );
+  // ========================================================
+  // MODAL 1: REGISTRAR ASISTENCIA (Lógica Clave)
+  // ========================================================
+
+  function openAsistenciaModal() {
+    asistenciaModal.classList.add('open');
+    resetAsistenciaModal();
+    setTimeout(() => asistSearchInput.focus(), 150);
+    searchPersonasForDropdown('');
   }
 
-  // --- FORM SUBMISSION ---
+  function closeAsistenciaModal() {
+    asistenciaModal.classList.remove('open');
+    resetAsistenciaModal();
+  }
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  function resetAsistenciaModal() {
+    state.selectedPerson = null;
+    asistSearchInput.value = '';
+    asistClearBtn.style.display = 'none';
+    asistDropdownResults.style.display = 'none';
+    asistDropdownResults.innerHTML = '';
+    selectedPersonCard.style.display = 'none';
+    alreadyAttendedAlert.style.display = 'none';
+    asistTipoGroup.style.display = 'none';
+    asistNotasGroup.style.display = 'none';
+    asistNotas.value = '';
+    notFoundPrompt.style.display = 'none';
+    checkMarcarAsistencia.checked = true;
+    btnSubmitAsistencia.disabled = true;
+    if (asistFechaHoraDisplay) {
+      asistFechaHoraDisplay.textContent = `Culto: ${formatTodayServiceText()}`;
+    }
+  }
 
-    const nombre = inputNombre.value.trim();
-    if (!nombre) {
-      showToast('Por favor ingrese el nombre', 'error');
-      inputNombre.focus();
+  btnOpenAsistencia.addEventListener('click', openAsistenciaModal);
+  closeAsistenciaModalBtn.addEventListener('click', closeAsistenciaModal);
+  cancelAsistenciaBtn.addEventListener('click', closeAsistenciaModal);
+
+  // Search input with autocomplete dropdown
+  let asistSearchTimeout;
+  asistSearchInput.addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    asistClearBtn.style.display = val ? 'flex' : 'none';
+
+    clearTimeout(asistSearchTimeout);
+    asistSearchTimeout = setTimeout(() => {
+      searchPersonasForDropdown(val);
+    }, 200);
+  });
+
+  asistSearchInput.addEventListener('focus', () => {
+    if (!state.selectedPerson) {
+      searchPersonasForDropdown(asistSearchInput.value.trim());
+    }
+  });
+
+  asistClearBtn.addEventListener('click', () => {
+    asistSearchInput.value = '';
+    asistClearBtn.style.display = 'none';
+    searchPersonasForDropdown('');
+    asistSearchInput.focus();
+  });
+
+  async function searchPersonasForDropdown(query) {
+    try {
+      const res = await fetch(`/api/personas/search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error('Error al buscar');
+      const list = await res.json();
+      renderAsistDropdown(list, query);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderAsistDropdown(personas, query) {
+    asistDropdownResults.innerHTML = '';
+
+    if (personas.length === 0) {
+      asistDropdownResults.innerHTML = `
+        <div class="dropdown-empty">
+          No se encontraron personas con "<strong>${escapeHtml(query)}</strong>".
+        </div>
+      `;
+      notFoundPrompt.style.display = 'block';
+      asistDropdownResults.style.display = 'block';
       return;
     }
 
-    const tipo = radioNuevo.checked ? 'nuevo' : 'consolidado';
-    const telefono = inputTelefono.value.trim();
-    const direccion = inputDireccion.value.trim();
-    const cumpleanos = inputCumpleanos.value.trim();
-    const notas = inputNotas.value.trim();
+    notFoundPrompt.style.display = 'none';
 
-    // Use input datetime or current time
-    let fechaHora = inputFechaHora.value.trim();
-    if (fechaHora) {
-      fechaHora = fechaHora.replace('T', ' ') + ':00';
+    personas.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'dropdown-item-person';
+
+      const isNuevo = p.tipo === 'nuevo';
+      const badgeClass = isNuevo ? 'badge-nuevo' : 'badge-consolidado';
+      const badgeText = isNuevo ? '🟢 Nuevo' : '🔵 Consolidado';
+
+      item.innerHTML = `
+        <div>
+          <div class="dropdown-person-name">${escapeHtml(p.nombre)}</div>
+          <div class="dropdown-person-sub">
+            <span class="badge-status ${badgeClass}" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${badgeText}</span>
+            <span>${p.telefono ? escapeHtml(p.telefono) : 'Sin tel'}</span>
+            ${p.cumpleanos ? `<span>• 🎂 ${escapeHtml(p.cumpleanos)}</span>` : ''}
+          </div>
+        </div>
+        <div>
+          ${p.asistio_hoy > 0 ? `<span class="dropdown-already-badge">✅ Asistió hoy</span>` : `<span style="color: #3b82f6; font-size: 0.85rem; font-weight: 700;">Elegir ➔</span>`}
+        </div>
+      `;
+
+      item.addEventListener('click', () => {
+        selectPersonForAttendance(p);
+      });
+
+      asistDropdownResults.appendChild(item);
+    });
+
+    asistDropdownResults.style.display = 'block';
+  }
+
+  function selectPersonForAttendance(person) {
+    state.selectedPerson = person;
+    asistDropdownResults.style.display = 'none';
+    asistSearchInput.value = person.nombre;
+    asistClearBtn.style.display = 'none';
+
+    // Show person card
+    selectedPersonName.textContent = person.nombre;
+    selectedPersonPhone.textContent = person.telefono ? `📞 ${person.telefono}` : 'Sin teléfono registrado';
+
+    const isNuevo = person.tipo === 'nuevo';
+    selectedPersonBadge.className = `badge-status ${isNuevo ? 'badge-nuevo' : 'badge-consolidado'}`;
+    selectedPersonBadge.textContent = isNuevo ? '🟢 Nuevo' : '🔵 Consolidado';
+
+    // Show alert if already attended today
+    if (person.asistio_hoy > 0) {
+      alreadyAttendedAlert.style.display = 'block';
     } else {
-      fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      alreadyAttendedAlert.style.display = 'none';
+    }
+
+    selectedPersonCard.style.display = 'block';
+    asistTipoGroup.style.display = 'block';
+    asistNotasGroup.style.display = 'block';
+
+    // Preselect condition radio
+    if (person.tipo === 'nuevo') {
+      asistRadioNuevo.checked = true;
+      asistOptionNuevo.classList.add('selected');
+      asistOptionConsolidado.classList.remove('selected');
+    } else {
+      asistRadioConsolidado.checked = true;
+      asistOptionConsolidado.classList.add('selected');
+      asistOptionNuevo.classList.remove('selected');
+    }
+
+    // Attendance checkbox checked by default
+    checkMarcarAsistencia.checked = true;
+    btnSubmitAsistencia.disabled = false;
+  }
+
+  // Change selected person
+  btnChangePerson.addEventListener('click', () => {
+    state.selectedPerson = null;
+    selectedPersonCard.style.display = 'none';
+    asistTipoGroup.style.display = 'none';
+    asistNotasGroup.style.display = 'none';
+    btnSubmitAsistencia.disabled = true;
+    asistSearchInput.value = '';
+    searchPersonasForDropdown('');
+    asistSearchInput.focus();
+  });
+
+  // Switch to nuevo modal if person not found
+  btnSwitchToNuevo.addEventListener('click', () => {
+    const currentSearch = asistSearchInput.value.trim();
+    closeAsistenciaModal();
+    openNuevoModal();
+    if (currentSearch) {
+      nuevoInputNombre.value = currentSearch;
+    }
+  });
+
+  // Radio selector for Asistencia modal
+  asistOptionNuevo.addEventListener('click', () => {
+    asistRadioNuevo.checked = true;
+    asistOptionNuevo.classList.add('selected');
+    asistOptionConsolidado.classList.remove('selected');
+  });
+
+  asistOptionConsolidado.addEventListener('click', () => {
+    asistRadioConsolidado.checked = true;
+    asistOptionConsolidado.classList.add('selected');
+    asistOptionNuevo.classList.remove('selected');
+  });
+
+  // Attendance Checkbox toggle
+  checkMarcarAsistencia.addEventListener('change', () => {
+    btnSubmitAsistencia.disabled = !checkMarcarAsistencia.checked || !state.selectedPerson;
+  });
+
+  // Submit Asistencia
+  asistenciaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!state.selectedPerson) {
+      showToast('Por favor selecciona una persona de la lista', 'error');
+      asistSearchInput.focus();
+      return;
+    }
+
+    if (!checkMarcarAsistencia.checked) {
+      showToast('Debe estar marcada la casilla de asistencia', 'error');
+      return;
+    }
+
+    const payload = {
+      persona_id: state.selectedPerson.id,
+      tipo: asistRadioNuevo.checked ? 'nuevo' : 'consolidado',
+      fecha_hora: getLocalDateTimeString().replace('T', ' ') + ':00',
+      notas: asistNotas.value.trim()
+    };
+
+    btnSubmitAsistencia.disabled = true;
+    btnSubmitAsistencia.textContent = 'Guardando...';
+
+    try {
+      const res = await fetch('/api/asistencias', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al guardar la asistencia');
+      }
+
+      showToast(`¡Asistencia de "${state.selectedPerson.nombre}" registrada!`, 'success');
+
+      // Refresh data
+      await fetchAsistencias();
+      await fetchStats();
+
+      // Reset modal ready for the next person
+      resetAsistenciaModal();
+      asistSearchInput.focus();
+      searchPersonasForDropdown('');
+
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, 'error');
+    } finally {
+      btnSubmitAsistencia.disabled = false;
+      btnSubmitAsistencia.textContent = '✅ Confirmar Asistencia';
+    }
+  });
+
+  // ========================================================
+  // MODAL 2: REGISTRAR NUEVO (Formulario Completo)
+  // ========================================================
+
+  function openNuevoModal() {
+    nuevoModal.classList.add('open');
+    nuevoPersonaForm.reset();
+    updateNuevoTypeSelection('nuevo');
+    nuevoInputFechaHora.value = getLocalDateTimeString();
+    setTimeout(() => nuevoInputNombre.focus(), 150);
+  }
+
+  function closeNuevoModal() {
+    nuevoModal.classList.remove('open');
+    nuevoPersonaForm.reset();
+  }
+
+  btnOpenNuevo.addEventListener('click', openNuevoModal);
+  closeNuevoModalBtn.addEventListener('click', closeNuevoModal);
+  cancelNuevoBtn.addEventListener('click', closeNuevoModal);
+
+  function updateNuevoTypeSelection(type) {
+    if (type === 'nuevo') {
+      nuevoRadioNuevo.checked = true;
+      nuevoOptionNuevo.classList.add('selected');
+      nuevoOptionConsolidado.classList.remove('selected');
+    } else {
+      nuevoRadioConsolidado.checked = true;
+      nuevoOptionConsolidado.classList.add('selected');
+      nuevoOptionNuevo.classList.remove('selected');
+    }
+  }
+
+  nuevoOptionNuevo.addEventListener('click', () => updateNuevoTypeSelection('nuevo'));
+  nuevoOptionConsolidado.addEventListener('click', () => updateNuevoTypeSelection('consolidado'));
+
+  if (nuevoBtnSetNow) {
+    nuevoBtnSetNow.addEventListener('click', () => {
+      nuevoInputFechaHora.value = getLocalDateTimeString();
+      showToast('Fecha y hora actualizadas', 'success');
+    });
+  }
+
+  nuevoPersonaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nombre = nuevoInputNombre.value.trim();
+    if (!nombre) {
+      showToast('El nombre es obligatorio', 'error');
+      nuevoInputNombre.focus();
+      return;
     }
 
     const payload = {
       nombre,
-      telefono,
-      direccion,
-      cumpleanos,
-      tipo,
-      fecha_hora_registro: fechaHora,
-      notas
+      telefono: nuevoInputTelefono.value.trim(),
+      direccion: nuevoInputDireccion.value.trim(),
+      cumpleanos: nuevoInputCumpleanos.value.trim(),
+      tipo: nuevoRadioNuevo.checked ? 'nuevo' : 'consolidado',
+      fecha_hora_registro: (nuevoInputFechaHora.value.trim().replace('T', ' ') || getLocalDateTimeString().replace('T', ' ')) + ':00',
+      notas: nuevoInputNotas.value.trim()
     };
 
     try {
@@ -366,34 +660,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Error al guardar');
+        const err = await res.json();
+        throw new Error(err.error || 'Error al guardar nuevo registro');
       }
 
-      showToast(`¡Registro de "${nombre}" guardado con éxito!`, 'success');
+      showToast(`¡Nuevo asistente "${nombre}" registrado con éxito!`, 'success');
+      closeNuevoModal();
 
-      // Reset form
-      form.reset();
-      updateTypeSelection('nuevo');
-      resetDateTimeInput();
-      inputNombre.focus();
-
-      // Refresh data and stats
-      await fetchPersonas();
+      await fetchAsistencias();
       await fetchStats();
+
     } catch (err) {
       console.error(err);
       showToast(err.message, 'error');
     }
   });
 
-  btnReset.addEventListener('click', () => {
-    form.reset();
-    updateTypeSelection('nuevo');
-    resetDateTimeInput();
-  });
-
-  // --- FILTERS & SEARCH ---
+  // ========================================================
+  // FILTERS, SEARCH & TABLE ACTIONS
+  // ========================================================
 
   let searchTimeout;
   searchInput.addEventListener('input', (e) => {
@@ -403,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       state.filters.search = e.target.value;
-      fetchPersonas();
+      fetchAsistencias();
     }, 250);
   });
 
@@ -412,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
       searchInput.value = '';
       clearSearchBtn.style.display = 'none';
       state.filters.search = '';
-      fetchPersonas();
+      fetchAsistencias();
       searchInput.focus();
     });
   }
@@ -426,18 +711,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (filterType === 'hoy') {
         state.filters.tipo = 'todos';
         state.filters.dateFilter = 'hoy';
+      } else if (filterType === 'todos') {
+        state.filters.tipo = 'todos';
+        state.filters.dateFilter = 'todos';
       } else {
         state.filters.tipo = filterType;
         state.filters.dateFilter = 'todos';
       }
 
-      fetchPersonas();
+      fetchAsistencias();
     });
   });
 
-  // --- EXPORT TO EXCEL ---
+  // ========================================================
+  // EXPORT & BACKUP
+  // ========================================================
 
-  // Toggle Dropdown
   exportBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     exportDropdown.classList.toggle('open');
@@ -446,6 +735,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', (e) => {
     if (!exportDropdown.contains(e.target)) {
       exportDropdown.classList.remove('open');
+    }
+    if (!asistDropdownResults.contains(e.target) && e.target !== asistSearchInput) {
+      asistDropdownResults.style.display = 'none';
     }
   });
 
@@ -469,7 +761,6 @@ document.addEventListener('DOMContentLoaded', () => {
   btnExportOriginal.addEventListener('click', () => downloadExcel('original'));
   btnExportFull.addEventListener('click', () => downloadExcel('full'));
 
-  const btnBackupDb = document.getElementById('btnBackupDb');
   if (btnBackupDb) {
     btnBackupDb.addEventListener('click', () => {
       exportDropdown.classList.remove('open');
@@ -477,7 +768,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- EDIT MODAL ---
+  // ========================================================
+  // EDIT & DELETE MODALS
+  // ========================================================
 
   async function openEditModal(id) {
     try {
@@ -551,14 +844,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showToast('Registro actualizado correctamente', 'success');
       closeEditModal();
-      await fetchPersonas();
+      await fetchAsistencias();
       await fetchStats();
     } catch (err) {
       showToast(err.message, 'error');
     }
   });
-
-  // --- DELETE MODAL ---
 
   function openDeleteModal(id, name) {
     state.deleteId = id;
@@ -583,16 +874,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!res.ok) throw new Error('Error al eliminar');
 
-      showToast('Registro eliminado', 'success');
+      showToast('Asistencia eliminada', 'success');
       closeDeleteModal();
-      await fetchPersonas();
+      await fetchAsistencias();
       await fetchStats();
     } catch (err) {
       showToast(err.message, 'error');
     }
   });
 
-  // --- IMPORT EXCEL ---
+  // ========================================================
+  // IMPORT EXCEL
+  // ========================================================
 
   btnOpenImport.addEventListener('click', () => {
     importModal.classList.add('open');
@@ -635,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Por favor selecciona un archivo Excel (.xlsx o .xls)', 'error');
       return;
     }
-    selectedFileName.textContent = `Archivo seleccionado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    selectedFileName.textContent = `Archivo: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
     btnProcessImport.disabled = false;
   }
 
@@ -660,7 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showToast(data.message, 'success');
       importModal.classList.remove('open');
-      await fetchPersonas();
+      await fetchAsistencias();
       await fetchStats();
     } catch (err) {
       showToast(err.message, 'error');
@@ -673,18 +966,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close modals on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      closeAsistenciaModal();
+      closeNuevoModal();
       closeEditModal();
       closeDeleteModal();
       importModal.classList.remove('open');
       exportDropdown.classList.remove('open');
+      asistDropdownResults.style.display = 'none';
     }
   });
 
   // --- INITIALIZATION ---
   startClock();
-  resetDateTimeInput();
-  updateTypeSelection('nuevo');
   fetchStats();
-  fetchPersonas();
+  fetchAsistencias();
 });
-

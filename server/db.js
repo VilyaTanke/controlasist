@@ -31,6 +31,26 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_personas_tipo ON personas(tipo);
   CREATE INDEX IF NOT EXISTS idx_personas_fecha ON personas(fecha_hora_registro);
   CREATE INDEX IF NOT EXISTS idx_personas_nombre ON personas(nombre);
+
+  CREATE TABLE IF NOT EXISTS asistencias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    persona_id INTEGER NOT NULL,
+    fecha_hora TEXT NOT NULL,
+    tipo TEXT NOT NULL CHECK(tipo IN ('nuevo', 'consolidado')),
+    notas TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (persona_id) REFERENCES personas(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_asistencias_persona ON asistencias(persona_id);
+  CREATE INDEX IF NOT EXISTS idx_asistencias_fecha ON asistencias(fecha_hora);
+`);
+
+// Auto-migration: ensure existing personas have attendance records in asistencias
+db.exec(`
+  INSERT INTO asistencias (persona_id, fecha_hora, tipo, notas, created_at)
+  SELECT id, fecha_hora_registro, tipo, notas, created_at FROM personas
+  WHERE id NOT IN (SELECT DISTINCT persona_id FROM asistencias);
 `);
 
 // Helper to seed initial sample records if empty
@@ -102,22 +122,37 @@ const getLocalTimestamp = (date = new Date()) => {
 
 // Queries
 const getAll = (filters = {}) => {
-  let query = 'SELECT * FROM personas WHERE 1=1';
+  let query = `
+    SELECT 
+      a.id,
+      a.persona_id,
+      p.nombre,
+      p.telefono,
+      p.direccion,
+      p.cumpleanos,
+      a.tipo,
+      a.fecha_hora as fecha_hora_registro,
+      a.notas,
+      a.created_at
+    FROM asistencias a
+    JOIN personas p ON a.persona_id = p.id
+    WHERE 1=1
+  `;
   const params = [];
 
   if (filters.search) {
-    query += ' AND (nombre LIKE ? OR telefono LIKE ? OR direccion LIKE ? OR notas LIKE ?)';
+    query += ' AND (p.nombre LIKE ? OR p.telefono LIKE ? OR p.direccion LIKE ? OR a.notas LIKE ?)';
     const term = `%${filters.search.trim()}%`;
     params.push(term, term, term, term);
   }
 
   if (filters.tipo && filters.tipo !== 'todos') {
-    query += ' AND tipo = ?';
+    query += ' AND a.tipo = ?';
     params.push(filters.tipo);
   }
 
   if (filters.dateFrom) {
-    query += ' AND fecha_hora_registro >= ?';
+    query += ' AND a.fecha_hora >= ?';
     params.push(filters.dateFrom);
   }
 
@@ -126,64 +161,216 @@ const getAll = (filters = {}) => {
     if (dateToVal.length === 10) {
       dateToVal += ' 23:59:59';
     }
-    query += ' AND fecha_hora_registro <= ?';
+    query += ' AND a.fecha_hora <= ?';
     params.push(dateToVal);
   }
 
-  query += ' ORDER BY fecha_hora_registro DESC, id DESC';
+  query += ' ORDER BY a.fecha_hora DESC, a.id DESC';
 
   return db.prepare(query).all(...params);
 };
 
 const getById = (id) => {
-  return db.prepare('SELECT * FROM personas WHERE id = ?').get(id);
+  return db.prepare(`
+    SELECT 
+      a.id,
+      a.persona_id,
+      p.nombre,
+      p.telefono,
+      p.direccion,
+      p.cumpleanos,
+      a.tipo,
+      a.fecha_hora as fecha_hora_registro,
+      a.notas,
+      a.created_at
+    FROM asistencias a
+    JOIN personas p ON a.persona_id = p.id
+    WHERE a.id = ?
+  `).get(id);
 };
 
+const getPersonaById = (personaId) => {
+  return db.prepare('SELECT * FROM personas WHERE id = ?').get(personaId);
+};
+
+// Autocomplete search for personas to mark attendance
+const searchPersonas = (term = '') => {
+  const searchTerm = `%${(term || '').trim()}%`;
+  return db.prepare(`
+    SELECT 
+      p.id,
+      p.nombre,
+      p.telefono,
+      p.direccion,
+      p.cumpleanos,
+      p.tipo,
+      p.notas,
+      (SELECT COUNT(*) FROM asistencias WHERE persona_id = p.id) as total_asistencias,
+      (SELECT MAX(fecha_hora) FROM asistencias WHERE persona_id = p.id) as ultima_asistencia,
+      (SELECT COUNT(*) FROM asistencias WHERE persona_id = p.id AND substr(fecha_hora, 1, 10) = date('now', 'localtime')) as asistio_hoy
+    FROM personas p
+    WHERE p.nombre LIKE ? OR p.telefono LIKE ?
+    ORDER BY p.nombre ASC
+    LIMIT 30
+  `).all(searchTerm, searchTerm);
+};
+
+// Create a new person AND register their first attendance
 const create = (data) => {
-  const stmt = db.prepare(`
+  const fechaHora = data.fecha_hora_registro || getLocalTimestamp();
+  const tipo = ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo';
+
+  const stmtPersona = db.prepare(`
     INSERT INTO personas (nombre, telefono, direccion, cumpleanos, tipo, fecha_hora_registro, notas, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
   `);
 
-  const result = stmt.run(
+  const result = stmtPersona.run(
     data.nombre ? data.nombre.trim().slice(0, 150) : '',
     data.telefono ? data.telefono.trim().slice(0, 30) : null,
     data.direccion ? data.direccion.trim().slice(0, 250) : null,
     data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
-    ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo',
-    data.fecha_hora_registro || getLocalTimestamp(),
+    tipo,
+    fechaHora,
     data.notas ? data.notas.trim().slice(0, 2000) : null
   );
+
+  const personaId = result.lastInsertRowid;
+
+  // Also insert their attendance record
+  const stmtAsist = db.prepare(`
+    INSERT INTO asistencias (persona_id, fecha_hora, tipo, notas, created_at)
+    VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
+  `);
+
+  const asistResult = stmtAsist.run(
+    personaId,
+    fechaHora,
+    tipo,
+    data.notas ? data.notas.trim().slice(0, 2000) : null
+  );
+
+  return getById(asistResult.lastInsertRowid);
+};
+
+// Register attendance for an existing person
+const registrarAsistencia = (data) => {
+  const persona = db.prepare('SELECT * FROM personas WHERE id = ?').get(data.persona_id);
+  if (!persona) {
+    throw new Error('Persona no encontrada');
+  }
+
+  const fechaHora = data.fecha_hora || getLocalTimestamp();
+  const tipo = ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : persona.tipo;
+
+  const stmt = db.prepare(`
+    INSERT INTO asistencias (persona_id, fecha_hora, tipo, notas, created_at)
+    VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
+  `);
+
+  const result = stmt.run(
+    data.persona_id,
+    fechaHora,
+    tipo,
+    data.notas ? data.notas.trim().slice(0, 2000) : null
+  );
+
+  // Update persona with latest condition and updated timestamp
+  db.prepare(`
+    UPDATE personas
+    SET tipo = ?,
+        fecha_hora_registro = ?,
+        updated_at = datetime('now', 'localtime')
+    WHERE id = ?
+  `).run(tipo, fechaHora, data.persona_id);
 
   return getById(result.lastInsertRowid);
 };
 
 // Batch insert inside a single SQLite transaction
 const createMany = db.transaction((records) => {
-  const stmt = db.prepare(`
+  const stmtPersona = db.prepare(`
     INSERT INTO personas (nombre, telefono, direccion, cumpleanos, tipo, fecha_hora_registro, notas, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+  `);
+
+  const stmtAsist = db.prepare(`
+    INSERT INTO asistencias (persona_id, fecha_hora, tipo, notas, created_at)
+    VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
   `);
 
   let count = 0;
   for (const data of records) {
     if (!data.nombre || !data.nombre.trim()) continue;
-    stmt.run(
+    const fechaHora = data.fecha_hora_registro || getLocalTimestamp();
+    const tipo = ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo';
+
+    const res = stmtPersona.run(
       data.nombre.trim().slice(0, 150),
       data.telefono ? data.telefono.trim().slice(0, 30) : null,
       data.direccion ? data.direccion.trim().slice(0, 250) : null,
       data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
-      ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo',
-      data.fecha_hora_registro || getLocalTimestamp(),
+      tipo,
+      fechaHora,
       data.notas ? data.notas.trim().slice(0, 2000) : null
     );
+
+    stmtAsist.run(
+      res.lastInsertRowid,
+      fechaHora,
+      tipo,
+      data.notas ? data.notas.trim().slice(0, 2000) : null
+    );
+
     count++;
   }
   return count;
 });
 
 const update = (id, data) => {
-  const stmt = db.prepare(`
+  const asistencia = db.prepare('SELECT * FROM asistencias WHERE id = ?').get(id);
+
+  const tipo = ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo';
+  const fechaHora = data.fecha_hora_registro || getLocalTimestamp();
+
+  if (asistencia) {
+    // Update asistencia
+    db.prepare(`
+      UPDATE asistencias
+      SET tipo = ?,
+          fecha_hora = ?,
+          notas = ?
+      WHERE id = ?
+    `).run(tipo, fechaHora, data.notas ? data.notas.trim().slice(0, 2000) : null, id);
+
+    // Update associated persona
+    db.prepare(`
+      UPDATE personas
+      SET nombre = ?,
+          telefono = ?,
+          direccion = ?,
+          cumpleanos = ?,
+          tipo = ?,
+          fecha_hora_registro = ?,
+          notas = ?,
+          updated_at = datetime('now', 'localtime')
+      WHERE id = ?
+    `).run(
+      data.nombre ? data.nombre.trim().slice(0, 150) : '',
+      data.telefono ? data.telefono.trim().slice(0, 30) : null,
+      data.direccion ? data.direccion.trim().slice(0, 250) : null,
+      data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
+      tipo,
+      fechaHora,
+      data.notas ? data.notas.trim().slice(0, 2000) : null,
+      asistencia.persona_id
+    );
+
+    return getById(id);
+  }
+
+  // Fallback update personas table directly
+  db.prepare(`
     UPDATE personas
     SET nombre = ?,
         telefono = ?,
@@ -194,15 +381,13 @@ const update = (id, data) => {
         notas = ?,
         updated_at = datetime('now', 'localtime')
     WHERE id = ?
-  `);
-
-  stmt.run(
+  `).run(
     data.nombre ? data.nombre.trim().slice(0, 150) : '',
     data.telefono ? data.telefono.trim().slice(0, 30) : null,
     data.direccion ? data.direccion.trim().slice(0, 250) : null,
     data.cumpleanos ? data.cumpleanos.trim().slice(0, 20) : null,
-    ['nuevo', 'consolidado'].includes(data.tipo) ? data.tipo : 'nuevo',
-    data.fecha_hora_registro || getLocalTimestamp(),
+    tipo,
+    fechaHora,
     data.notas ? data.notas.trim().slice(0, 2000) : null,
     id
   );
@@ -211,24 +396,37 @@ const update = (id, data) => {
 };
 
 const remove = (id) => {
-  return db.prepare('DELETE FROM personas WHERE id = ?').run(id);
+  return db.prepare('DELETE FROM asistencias WHERE id = ?').run(id);
 };
 
 const getStats = () => {
-  const total = db.prepare('SELECT COUNT(*) as c FROM personas').get().c;
-  const nuevos = db.prepare("SELECT COUNT(*) as c FROM personas WHERE tipo = 'nuevo'").get().c;
-  const consolidados = db.prepare("SELECT COUNT(*) as c FROM personas WHERE tipo = 'consolidado'").get().c;
+  const totalPersonas = db.prepare('SELECT COUNT(*) as c FROM personas').get().c;
+  const totalAsistencias = db.prepare('SELECT COUNT(*) as c FROM asistencias').get().c;
 
-  // Hoy en formato YYYY-MM-DD
+  // Asistencias hoy
   const hoyQuery = db.prepare(`
-    SELECT COUNT(*) as c FROM personas
-    WHERE substr(fecha_hora_registro, 1, 10) = date('now', 'localtime')
+    SELECT COUNT(*) as c FROM asistencias
+    WHERE substr(fecha_hora, 1, 10) = date('now', 'localtime')
+  `).get().c;
+
+  // Nuevos hoy
+  const nuevosHoy = db.prepare(`
+    SELECT COUNT(*) as c FROM asistencias
+    WHERE tipo = 'nuevo' AND substr(fecha_hora, 1, 10) = date('now', 'localtime')
+  `).get().c;
+
+  // Consolidados hoy
+  const consolidadosHoy = db.prepare(`
+    SELECT COUNT(*) as c FROM asistencias
+    WHERE tipo = 'consolidado' AND substr(fecha_hora, 1, 10) = date('now', 'localtime')
   `).get().c;
 
   return {
-    total,
-    nuevos,
-    consolidados,
+    total: totalAsistencias,
+    totalPersonas,
+    totalAsistencias,
+    nuevos: nuevosHoy,
+    consolidados: consolidadosHoy,
     hoy: hoyQuery
   };
 };
@@ -239,7 +437,10 @@ module.exports = {
   getLocalTimestamp,
   getAll,
   getById,
+  getPersonaById,
+  searchPersonas,
   create,
+  registrarAsistencia,
   createMany,
   update,
   remove,
