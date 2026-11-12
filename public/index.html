@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Control NVSR - Iglesia Nueva Vida de Soto del Real</title>
   <link rel="stylesheet" href="css/styles.css?v=2.2">
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
 </head>
-
 <body>
 
   <div class="app-container">
@@ -145,8 +142,7 @@
 
               <div class="dropdown-divider"></div>
 
-              <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download
-                title="Descargar archivo .db de SQLite">
+              <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download title="Descargar archivo .db de SQLite">
                 <span style="font-size: 1.25rem;">💾</span>
                 <div>
                   <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
@@ -172,10 +168,14 @@
             <div class="search-container">
               <div class="input-wrapper">
                 <span class="input-icon">🔍</span>
-                <input type="text" id="searchInput" class="form-control"
-                  placeholder="Buscar en asistencias por nombre, teléfono..." autocomplete="off">
-                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda"
-                  style="display: none;">✕</button>
+                <input
+                  type="text"
+                  id="searchInput"
+                  class="form-control"
+                  placeholder="Buscar en asistencias por nombre, teléfono..."
+                  autocomplete="off"
+                >
+                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda" style="display: none;">✕</button>
               </div>
             </div>
 
@@ -249,8 +249,13 @@
             <div class="searchable-dropdown-wrapper">
               <div class="input-wrapper">
                 <span class="input-icon">🔍</span>
-                <input type="text" id="asistSearchInput" class="form-control"
-                  placeholder="Escribe el nombre o teléfono..." autocomplete="off">
+                <input
+                  type="text"
+                  id="asistSearchInput"
+                  class="form-control"
+                  placeholder="Escribe el nombre o teléfono..."
+                  autocomplete="off"
+                >
                 <button type="button" id="asistClearBtn" class="clear-search-btn" style="display: none;">✕</button>
               </div>
 
@@ -325,8 +330,12 @@
           <!-- Observaciones / Petición de oración opcional -->
           <div class="form-group" id="asistNotasGroup" style="display: none;">
             <label class="form-label" for="asistNotas">Observaciones / Petición de oración</label>
-            <textarea id="asistNotas" class="form-control"
-              placeholder="Notas del culto de hoy, peticiones de oración, ujier que atendió..." rows="2"></textarea>
+            <textarea
+              id="asistNotas"
+              class="form-control"
+              placeholder="Notas del culto de hoy, peticiones de oración, ujier que atendió..."
+              rows="2"
+            ></textarea>
           </div>
 
           <!-- Mensaje para invitar a registrar nuevo si no se encuentra -->
@@ -375,8 +384,14 @@
             </label>
             <div class="input-wrapper">
               <span class="input-icon">👤</span>
-              <input type="text" id="nuevoInputNombre" class="form-control" placeholder="Ej: Daniel Morales Pérez"
-                required autocomplete="name">
+              <input
+                type="text"
+                id="nuevoInputNombre"
+                class="form-control"
+                placeholder="Ej: Daniel Morales Pérez"
+                required
+                autocomplete="name"
+              >
             </div>
           </div>
 
@@ -385,8 +400,13 @@
             <label class="form-label" for="nuevoInputTelefono">Teléfono de Contacto</label>
             <div class="input-wrapper">
               <span class="input-icon">📞</span>
-              <input type="tel" id="nuevoInputTelefono" class="form-control" placeholder="Ej: 612 34 56 78"
-                autocomplete="tel">
+              <input
+                type="tel"
+                id="nuevoInputTelefono"
+                class="form-control"
+                placeholder="Ej: 612 34 56 78"
+                autocomplete="tel"
+              >
             </div>
           </div>
 
@@ -395,8 +415,13 @@
             <label class="form-label" for="nuevoInputDireccion">Dirección</label>
             <div class="input-wrapper">
               <span class="input-icon">🏠</span>
-              <input type="text" id="nuevoInputDireccion" class="form-control"
-                placeholder="Ej: Calle Real, 14, Soto del Real" autocomplete="street-address">
+              <input
+                type="text"
+                id="nuevoInputDireccion"
+                class="form-control"
+                placeholder="Ej: Calle Real, 14, Soto del Real"
+                autocomplete="street-address"
+              >
             </div>
           </div>
 
@@ -405,7 +430,11 @@
             <label class="form-label" for="nuevoInputCumpleanos">Fecha de Cumpleaños</label>
             <div class="input-wrapper">
               <span class="input-icon">🎂</span>
-              <input type="date" id="nuevoInputCumpleanos" class="form-control">
+              <input
+                type="date"
+                id="nuevoInputCumpleanos"
+                class="form-control"
+              >
             </div>
           </div>
 
@@ -443,7 +472,12 @@
               Fecha y Hora de Registro
             </label>
             <div class="datetime-row">
-              <input type="datetime-local" id="nuevoInputFechaHora" class="form-control no-icon" required>
+              <input
+                type="datetime-local"
+                id="nuevoInputFechaHora"
+                class="form-control no-icon"
+                required
+              >
               <button type="button" class="btn-now" id="nuevoBtnSetNow" title="Poner fecha y hora de este instante">
                 🕒 Ahora
               </button>
@@ -453,8 +487,12 @@
           <!-- Notas / Petición de oración -->
           <div class="form-group">
             <label class="form-label" for="nuevoInputNotas">Observaciones / Petición de oración</label>
-            <textarea id="nuevoInputNotas" class="form-control"
-              placeholder="Notas adicionales, ujier que atendió, peticiones..." rows="2"></textarea>
+            <textarea
+              id="nuevoInputNotas"
+              class="form-control"
+              placeholder="Notas adicionales, ujier que atendió, peticiones..."
+              rows="2"
+            ></textarea>
           </div>
 
         </div>
@@ -538,8 +576,7 @@
       </div>
       <div class="modal-body">
         <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción eliminará el registro
-          de la lista de asistencias.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Esta acción eliminará el registro de la lista de asistencias.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
@@ -567,12 +604,10 @@
           <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;">
         </div>
 
-        <div id="selectedFileName"
-          style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);"></div>
+        <div id="selectedFileName" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--primary);"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline"
-          onclick="document.getElementById('importModal').classList.remove('open')">Cancelar</button>
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('importModal').classList.remove('open')">Cancelar</button>
         <button type="button" class="btn btn-primary" id="btnProcessImport" disabled>Procesar e Importar</button>
       </div>
     </div>
@@ -583,5 +618,4 @@
 
   <script src="js/app.js?v=2.2"></script>
 </body>
-
 </html>
