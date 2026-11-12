@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatDisplayDate(dateStr) {
     if (!dateStr) return '-';
+    if (dateStr.startsWith('1970-01-01')) return '—';
     try {
       const clean = dateStr.replace(' ', 'T');
       const d = new Date(clean);

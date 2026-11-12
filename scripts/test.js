@@ -37,6 +37,9 @@ async function runTests() {
 
   // 4. Test Eliminar
   db.remove(item.id);
+  if (item.persona_id) {
+    db.db.prepare('DELETE FROM personas WHERE id = ?').run(item.persona_id);
+  }
   if (db.getById(item.id)) throw new Error('Error al eliminar registro');
   console.log('   Operaciones CRUD: OK');
 

@@ -289,7 +289,11 @@ async function generateExcel(personas, format = 'full') {
       row.height = 24;
 
       const cellB = worksheet.getCell(`B${rowIndex}`);
-      cellB.value = p.fecha_hora_registro ? p.fecha_hora_registro.replace('T', ' ') : '';
+      cellB.value = !p.fecha_hora_registro
+        ? ''
+        : p.fecha_hora_registro.startsWith('1970-01-01')
+          ? '—'
+          : p.fecha_hora_registro.replace('T', ' ');
       cellB.alignment = { vertical: 'middle', horizontal: 'center' };
 
       const cellC = worksheet.getCell(`C${rowIndex}`);

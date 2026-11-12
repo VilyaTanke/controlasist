@@ -141,6 +141,16 @@ const getLocalTimestamp = (date = new Date()) => {
   return `${y}-${m}-${d} ${h}:${min}:${s}`;
 };
 
+// Normalize text for accent-insensitive and case-insensitive search
+const normalizeForSearch = (str) => {
+  if (!str) return '';
+  return String(str)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+};
+db.function('norm', normalizeForSearch);
+
 // Queries
 const getAll = (filters = {}) => {
   let query = `
@@ -162,8 +172,8 @@ const getAll = (filters = {}) => {
   const params = [];
 
   if (filters.search) {
-    query += ' AND (p.nombre LIKE ? OR p.telefono LIKE ? OR p.direccion LIKE ? OR a.notas LIKE ?)';
-    const term = `%${filters.search.trim()}%`;
+    query += ' AND (norm(p.nombre) LIKE ? OR norm(p.telefono) LIKE ? OR norm(p.direccion) LIKE ? OR norm(a.notas) LIKE ?)';
+    const term = `%${normalizeForSearch(filters.search.trim())}%`;
     params.push(term, term, term, term);
   }
 
@@ -216,7 +226,7 @@ const getPersonaById = (personaId) => {
 
 // Autocomplete search for personas to mark attendance
 const searchPersonas = (term = '') => {
-  const searchTerm = `%${(term || '').trim()}%`;
+  const searchTerm = `%${normalizeForSearch((term || '').trim())}%`;
   return db.prepare(`
     SELECT 
       p.id,
@@ -230,10 +240,10 @@ const searchPersonas = (term = '') => {
       (SELECT MAX(fecha_hora) FROM asistencias WHERE persona_id = p.id) as ultima_asistencia,
       (SELECT COUNT(*) FROM asistencias WHERE persona_id = p.id AND substr(fecha_hora, 1, 10) = date('now', 'localtime')) as asistio_hoy
     FROM personas p
-    WHERE p.nombre LIKE ? OR p.telefono LIKE ?
+    WHERE norm(p.nombre) LIKE ? OR norm(p.telefono) LIKE ? OR norm(p.direccion) LIKE ? OR norm(p.notas) LIKE ?
     ORDER BY p.nombre ASC
-    LIMIT 30
-  `).all(searchTerm, searchTerm);
+    LIMIT 150
+  `).all(searchTerm, searchTerm, searchTerm, searchTerm);
 };
 
 // Create a new person AND register their first attendance
