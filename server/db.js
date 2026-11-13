@@ -565,6 +565,7 @@ module.exports = {
   db,
   dbPath,
   getLocalTimestamp,
+  normalizeForSearch,
   getAll,
   getById,
   getPersonaById,

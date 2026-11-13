@@ -16,6 +16,20 @@ document.addEventListener('DOMContentLoaded', () => {
       token: localStorage.getItem('control_nvsr_admin_token') || null,
       user: JSON.parse(localStorage.getItem('control_nvsr_admin_user') || 'null'),
       usersList: []
+    },
+    currentView: 'home',
+    analytics: {
+      filter: {
+        mode: 'preset',
+        days: 30,
+        date: '',
+        dateFrom: '',
+        dateTo: ''
+      },
+      overview: null,
+      selectedCity: null,
+      geoMode: 'city',
+      selectedPersonId: null
     }
   };
 
@@ -144,6 +158,70 @@ document.addEventListener('DOMContentLoaded', () => {
   const dropzone = document.getElementById('dropzone');
   const btnProcessImport = document.getElementById('btnProcessImport');
   const selectedFileName = document.getElementById('selectedFileName');
+
+  // --- ANALYTICS PAGE ELEMENTS (Admin Only) ---
+  const homeControlView = document.getElementById('homeControlView');
+  const analyticsView = document.getElementById('analyticsView');
+  const btnOpenAnalyticsPage = document.getElementById('btnOpenAnalyticsPage');
+  const btnAdminGoAnalytics = document.getElementById('btnAdminGoAnalytics');
+  const btnBackToHome = document.getElementById('btnBackToHome');
+  const btnRefreshAnalytics = document.getElementById('btnRefreshAnalytics');
+  const btnAnalyticsLogout = document.getElementById('btnAnalyticsLogout');
+  const analyticsAdminBadgeText = document.getElementById('analyticsAdminBadgeText');
+  const analyticsTopbarActions = document.getElementById('analyticsTopbarActions');
+
+  const analyticsAuthGate = document.getElementById('analyticsAuthGate');
+  const analyticsLoginForm = document.getElementById('analyticsLoginForm');
+  const analyticsLoginUser = document.getElementById('analyticsLoginUser');
+  const analyticsLoginPass = document.getElementById('analyticsLoginPass');
+  const analyticsLoginError = document.getElementById('analyticsLoginError');
+  const btnAnalyticsLogin = document.getElementById('btnAnalyticsLogin');
+  const analyticsDashboard = document.getElementById('analyticsDashboard');
+
+  const analyticsPeriodLabel = document.getElementById('analyticsPeriodLabel');
+  const analyticsPeriodRangeBadge = document.getElementById('analyticsPeriodRangeBadge');
+  const analyticsPresetBtns = document.querySelectorAll('[data-preset]');
+  const analyticsSingleDate = document.getElementById('analyticsSingleDate');
+  const btnApplySingleDate = document.getElementById('btnApplySingleDate');
+  const analyticsDateFrom = document.getElementById('analyticsDateFrom');
+  const analyticsDateTo = document.getElementById('analyticsDateTo');
+  const btnApplyRange = document.getElementById('btnApplyRange');
+
+  const kpiNuevosIngreso = document.getElementById('kpiNuevosIngreso');
+  const kpiNuevosVisitantes = document.getElementById('kpiNuevosVisitantes');
+  const kpiTotalAsistencias = document.getElementById('kpiTotalAsistencias');
+  const kpiAsistenciasDesglose = document.getElementById('kpiAsistenciasDesglose');
+  const kpiDirectorioTotal = document.getElementById('kpiDirectorioTotal');
+  const analyticsChartPointInfo = document.getElementById('analyticsChartPointInfo');
+  const analyticsTimelineChart = document.getElementById('analyticsTimelineChart');
+  const analyticsNewPeopleCount = document.getElementById('analyticsNewPeopleCount');
+  const analyticsNewPeopleList = document.getElementById('analyticsNewPeopleList');
+
+  const analyticsPersonSection = document.getElementById('analyticsPersonSection');
+  const analyticsPersonSearch = document.getElementById('analyticsPersonSearch');
+  const analyticsPersonClearBtn = document.getElementById('analyticsPersonClearBtn');
+  const analyticsPersonDropdown = document.getElementById('analyticsPersonDropdown');
+  const analyticsPersonEmptyHint = document.getElementById('analyticsPersonEmptyHint');
+  const analyticsPersonDetail = document.getElementById('analyticsPersonDetail');
+  const personDetailName = document.getElementById('personDetailName');
+  const personDetailBadges = document.getElementById('personDetailBadges');
+  const personDetailContact = document.getElementById('personDetailContact');
+  const personDetailLastVisit = document.getElementById('personDetailLastVisit');
+  const personDetailLastRelative = document.getElementById('personDetailLastRelative');
+  const personDetailCount = document.getElementById('personDetailCount');
+  const personDetailCountNote = document.getElementById('personDetailCountNote');
+  const personDetailFirstVisit = document.getElementById('personDetailFirstVisit');
+  const personDetailGeoTag = document.getElementById('personDetailGeoTag');
+  const personDetailMetaExtra = document.getElementById('personDetailMetaExtra');
+  const personDetailHistory = document.getElementById('personDetailHistory');
+
+  const geoCitiesCountBadge = document.getElementById('geoCitiesCountBadge');
+  const geoSummaryPills = document.getElementById('geoSummaryPills');
+  const geoCitiesList = document.getElementById('geoCitiesList');
+  const geoSelectedCityTitle = document.getElementById('geoSelectedCityTitle');
+  const btnGeoModeCity = document.getElementById('btnGeoModeCity');
+  const btnGeoModeAllZones = document.getElementById('btnGeoModeAllZones');
+  const geoZonesAndPeople = document.getElementById('geoZonesAndPeople');
 
   // --- HELPER FUNCTIONS ---
 
@@ -1118,6 +1196,43 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAdminUsers();
   }
 
+  async function authenticateAdmin(username, password) {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Usuario o contraseña de administrador incorrectos');
+    }
+
+    state.admin.token = data.token;
+    state.admin.user = data.user;
+    localStorage.setItem('control_nvsr_admin_token', data.token);
+    localStorage.setItem('control_nvsr_admin_user', JSON.stringify(data.user));
+    return data.user;
+  }
+
+  async function verifyCurrentAdminToken() {
+    if (!state.admin.token) return false;
+    try {
+      const res = await fetch('/api/admin/verify', {
+        headers: { 'Authorization': `Bearer ${state.admin.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        state.admin.user = data.user;
+        localStorage.setItem('control_nvsr_admin_user', JSON.stringify(data.user));
+        return true;
+      }
+    } catch (err) {
+      console.warn('Verificación de token falló:', err);
+    }
+    return false;
+  }
+
   async function loginAdmin(username, password) {
     if (!username || !password) return;
 
@@ -1128,25 +1243,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adminLoginError) adminLoginError.style.display = 'none';
 
     try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Usuario o contraseña de administrador incorrectos');
-      }
-
-      state.admin.token = data.token;
-      state.admin.user = data.user;
-      localStorage.setItem('control_nvsr_admin_token', data.token);
-      localStorage.setItem('control_nvsr_admin_user', JSON.stringify(data.user));
-
-      showToast(`¡Bienvenida ${data.user.username}! Sesión iniciada`, 'success');
+      const user = await authenticateAdmin(username, password);
+      showToast(`¡Bienvenida ${user.username}! Sesión iniciada`, 'success');
       showAdminDashboard();
-
     } catch (err) {
       if (adminLoginError) {
         adminLoginError.style.display = 'flex';
@@ -1175,6 +1274,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     state.admin.token = null;
     state.admin.user = null;
+    state.analytics.overview = null;
+    state.analytics.selectedPersonId = null;
     localStorage.removeItem('control_nvsr_admin_token');
     localStorage.removeItem('control_nvsr_admin_user');
 
@@ -1182,6 +1283,9 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Sesión de administrador cerrada', 'info');
     }
     showAdminLogin();
+    if (state.currentView === 'analytics') {
+      syncAnalyticsAccessState();
+    }
   }
 
   async function loadAdminUsers() {
@@ -1356,6 +1460,746 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ========================================================
+  // PÁGINA DE ANALÍTICAS (EXCLUSIVO ADMIN)
+  // ========================================================
+
+  function adminAuthHeaders() {
+    return { 'Authorization': `Bearer ${state.admin.token}` };
+  }
+
+  function formatShortDate(isoDate) {
+    if (!isoDate || isoDate.length < 10) return '-';
+    const [y, m, d] = isoDate.slice(0, 10).split('-').map(Number);
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${d} ${months[m - 1] || m} ${y}`;
+  }
+
+  function formatMonthLabel(ym) {
+    if (!ym || ym.length < 7) return ym || '';
+    const [y, m] = ym.split('-').map(Number);
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${months[m - 1] || m} ${String(y).slice(-2)}`;
+  }
+
+  function formatRelativeDays(dias) {
+    if (dias === null || dias === undefined) return 'Sin visitas registradas con fecha';
+    if (dias === 0) return 'Vino hoy';
+    if (dias === 1) return 'Vino ayer (hace 1 día)';
+    if (dias > 1) return `Hace ${dias} días`;
+    return 'Fecha registrada posterior a hoy';
+  }
+
+  function openAnalyticsPage(pushUrl = true) {
+    state.currentView = 'analytics';
+    if (homeControlView) homeControlView.style.display = 'none';
+    if (analyticsView) analyticsView.style.display = 'flex';
+    closeAdminPanel();
+
+    if (pushUrl && window.location.pathname !== '/analiticas') {
+      history.pushState({ view: 'analytics' }, '', '/analiticas');
+    }
+
+    syncAnalyticsAccessState();
+  }
+
+  function openHomePage(pushUrl = true) {
+    state.currentView = 'home';
+    if (analyticsView) analyticsView.style.display = 'none';
+    if (homeControlView) homeControlView.style.display = 'block';
+
+    if (pushUrl && window.location.pathname !== '/') {
+      history.pushState({ view: 'home' }, '', '/');
+    }
+
+    fetchStats();
+    fetchAsistencias();
+  }
+
+  async function syncAnalyticsAccessState() {
+    const isValid = await verifyCurrentAdminToken();
+    if (!isValid) {
+      state.admin.token = null;
+      state.admin.user = null;
+      localStorage.removeItem('control_nvsr_admin_token');
+      localStorage.removeItem('control_nvsr_admin_user');
+      if (analyticsAuthGate) analyticsAuthGate.style.display = 'block';
+      if (analyticsDashboard) analyticsDashboard.style.display = 'none';
+      if (analyticsTopbarActions) analyticsTopbarActions.style.display = 'none';
+      if (analyticsAdminBadgeText) analyticsAdminBadgeText.textContent = 'Solo Admin';
+      if (analyticsLoginPass) {
+        analyticsLoginPass.value = '';
+        setTimeout(() => analyticsLoginPass.focus(), 120);
+      }
+      return;
+    }
+
+    if (analyticsAuthGate) analyticsAuthGate.style.display = 'none';
+    if (analyticsDashboard) analyticsDashboard.style.display = 'flex';
+    if (analyticsTopbarActions) analyticsTopbarActions.style.display = 'flex';
+    if (analyticsAdminBadgeText && state.admin.user) {
+      analyticsAdminBadgeText.textContent = `Admin: ${state.admin.user.username}`;
+    }
+
+    await loadAnalyticsOverview();
+    await loadAnalyticsPersonas(analyticsPersonSearch ? analyticsPersonSearch.value.trim() : '', false);
+  }
+
+  function buildAnalyticsOverviewQuery() {
+    const f = state.analytics.filter;
+    const params = new URLSearchParams();
+    params.append('mode', f.mode);
+    if (f.mode === 'preset') params.append('days', String(f.days || 30));
+    if (f.mode === 'date' && f.date) params.append('date', f.date);
+    if (f.mode === 'range') {
+      if (f.dateFrom) params.append('dateFrom', f.dateFrom);
+      if (f.dateTo) params.append('dateTo', f.dateTo);
+    }
+    return params.toString();
+  }
+
+  async function loadAnalyticsOverview() {
+    if (!state.admin.token) return;
+    try {
+      const res = await fetch(`/api/analytics/overview?${buildAnalyticsOverviewQuery()}`, {
+        headers: adminAuthHeaders()
+      });
+      if (res.status === 401) {
+        await logoutAdmin(false);
+        return;
+      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error cargando analíticas');
+
+      state.analytics.overview = data;
+      renderEntriesAnalytics(data.entries);
+      renderGeographicAnalytics(data.geography);
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || 'No se pudieron cargar las analíticas', 'error');
+    }
+  }
+
+  function renderEntriesAnalytics(entries) {
+    if (!entries) return;
+    const { period, totals, dailySeries, monthlySeries, newPeopleList } = entries;
+
+    if (analyticsDateFrom) analyticsDateFrom.value = period.dateFrom || '';
+    if (analyticsDateTo) analyticsDateTo.value = period.dateTo || '';
+    if (analyticsSingleDate && period.mode === 'date') {
+      analyticsSingleDate.value = period.dateFrom || '';
+    }
+
+    if (analyticsPeriodLabel) {
+      analyticsPeriodLabel.textContent = `Rango consultado: ${formatShortDate(period.dateFrom)} al ${formatShortDate(period.dateTo)}`;
+    }
+    if (analyticsPeriodRangeBadge) {
+      analyticsPeriodRangeBadge.textContent = period.label || '-';
+    }
+
+    if (kpiNuevosIngreso) kpiNuevosIngreso.textContent = totals.nuevosPrimerIngreso || 0;
+    if (kpiNuevosVisitantes) kpiNuevosVisitantes.textContent = totals.nuevosVisitantes || 0;
+    if (kpiTotalAsistencias) kpiTotalAsistencias.textContent = totals.totalAsistencias || 0;
+    if (kpiAsistenciasDesglose) {
+      kpiAsistenciasDesglose.textContent = `${totals.asistenciasNuevo || 0} nuevos • ${totals.asistenciasConsolidado || 0} consolidados`;
+    }
+    if (kpiDirectorioTotal) kpiDirectorioTotal.textContent = totals.totalPersonas || 0;
+
+    renderTimelineChart(dailySeries || [], monthlySeries || []);
+    renderNewPeopleList(newPeopleList || [], period);
+  }
+
+  function renderTimelineChart(dailySeries, monthlySeries) {
+    if (!analyticsTimelineChart) return;
+    analyticsTimelineChart.innerHTML = '';
+
+    const useMonthly = dailySeries.length > 35;
+    const buckets = useMonthly ? monthlySeries : dailySeries;
+
+    if (!buckets || buckets.length === 0) {
+      analyticsTimelineChart.innerHTML = '<div class="chart-empty">No hay asistencias con fecha registrada en este período.</div>';
+      if (analyticsChartPointInfo) {
+        analyticsChartPointInfo.textContent = 'Sin datos de fechas en el período seleccionado.';
+      }
+      return;
+    }
+
+    const maxVal = Math.max(
+      1,
+      ...buckets.map(b => Math.max(b.nuevosIngresos || 0, b.totalAsistencias || 0))
+    );
+
+    if (analyticsChartPointInfo) {
+      analyticsChartPointInfo.textContent = useMonthly
+        ? `Vista agrupada por mes (${buckets.length} meses). Toca una columna para ver el detalle.`
+        : `Vista diaria (${buckets.length} ${buckets.length === 1 ? 'día' : 'días'}). Toca una columna para ver el detalle.`;
+    }
+
+    buckets.forEach((b) => {
+      const col = document.createElement('div');
+      col.className = 'chart-col';
+
+      const newCount = b.nuevosIngresos || 0;
+      const totCount = b.totalAsistencias || 0;
+      const hNew = newCount > 0 ? Math.max(8, Math.round((newCount / maxVal) * 105)) : 3;
+      const hTot = totCount > 0 ? Math.max(8, Math.round((totCount / maxVal) * 105)) : 3;
+
+      const label = useMonthly
+        ? formatMonthLabel(b.month)
+        : b.date.slice(8, 10) + '/' + b.date.slice(5, 7);
+
+      const fullLabel = useMonthly ? formatMonthLabel(b.month) : formatShortDate(b.date);
+
+      col.innerHTML = `
+        <div class="chart-bars-pair">
+          <div class="chart-bar chart-bar-green" style="height: ${hNew}px;">
+            ${newCount > 0 ? `<span class="chart-bar-num">${newCount}</span>` : ''}
+          </div>
+          <div class="chart-bar chart-bar-blue" style="height: ${hTot}px;">
+            ${totCount > 0 ? `<span class="chart-bar-num">${totCount}</span>` : ''}
+          </div>
+        </div>
+        <div class="chart-col-label">${escapeHtml(label)}</div>
+      `;
+
+      const showDetail = () => {
+        analyticsTimelineChart.querySelectorAll('.chart-col.active').forEach(el => el.classList.remove('active'));
+        col.classList.add('active');
+        if (analyticsChartPointInfo) {
+          analyticsChartPointInfo.textContent = `${fullLabel}: ${newCount} nuevos ingresos (1ª vez) • ${totCount} asistencias totales (${b.asistenciasNuevo || 0} nuevos, ${b.asistenciasConsolidado || 0} consolidados)`;
+        }
+      };
+
+      col.addEventListener('click', showDetail);
+      col.addEventListener('mouseenter', showDetail);
+      analyticsTimelineChart.appendChild(col);
+    });
+  }
+
+  function renderNewPeopleList(list, period) {
+    if (!analyticsNewPeopleList) return;
+    if (analyticsNewPeopleCount) analyticsNewPeopleCount.textContent = list.length;
+    analyticsNewPeopleList.innerHTML = '';
+
+    if (list.length === 0) {
+      analyticsNewPeopleList.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 1.25rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: var(--text-muted); font-size: 0.85rem;">
+          <div>No se registraron nuevos ingresos con fecha entre ${escapeHtml(formatShortDate(period.dateFrom))} y ${escapeHtml(formatShortDate(period.dateTo))}.</div>
+          ${period.mode !== 'all' ? `<button type="button" class="btn btn-sm btn-outline" id="btnAnalyticsShowAllFromEmpty" style="margin-top: 0.6rem;"><i class="fa-sharp-duotone fa-solid fa-clock-rotate-left"></i> Ver todo el historial</button>` : ''}
+        </div>
+      `;
+      const btnShowAll = document.getElementById('btnAnalyticsShowAllFromEmpty');
+      if (btnShowAll) {
+        btnShowAll.addEventListener('click', () => {
+          setAnalyticsPreset('all');
+        });
+      }
+      return;
+    }
+
+    list.forEach((p) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'analytics-person-chip';
+      btn.innerHTML = `
+        <div style="min-width: 0;">
+          <div class="analytics-person-chip-name">${escapeHtml(p.nombre)}</div>
+          <div class="analytics-person-chip-sub">
+            <i class="fa-sharp-duotone fa-solid fa-calendar-check"></i> ${escapeHtml(formatDisplayDate(p.primera_visita))}
+            ${p.direccion ? `• ${escapeHtml(p.direccion)}` : ''}
+          </div>
+        </div>
+        <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700; flex-shrink: 0;">
+          ${p.total_asistencias} ${p.total_asistencias === 1 ? 'vez' : 'veces'} <i class="fa-sharp-duotone fa-solid fa-arrow-right"></i>
+        </span>
+      `;
+      btn.addEventListener('click', () => selectAnalyticsPerson(p.id, true));
+      analyticsNewPeopleList.appendChild(btn);
+    });
+  }
+
+  function setAnalyticsPreset(presetVal) {
+    analyticsPresetBtns.forEach(b => {
+      b.classList.toggle('active', b.dataset.preset === String(presetVal));
+    });
+    if (presetVal === 'all') {
+      state.analytics.filter = { ...state.analytics.filter, mode: 'all' };
+    } else {
+      state.analytics.filter = {
+        ...state.analytics.filter,
+        mode: 'preset',
+        days: parseInt(presetVal, 10) || 30
+      };
+    }
+    loadAnalyticsOverview();
+  }
+
+  // Person Selector & Detail
+  async function loadAnalyticsPersonas(query = '', showDropdown = true) {
+    if (!state.admin.token || !analyticsPersonDropdown) return;
+    try {
+      const res = await fetch(`/api/analytics/personas?q=${encodeURIComponent(query)}`, {
+        headers: adminAuthHeaders()
+      });
+      if (res.status === 401) {
+        await logoutAdmin(false);
+        return;
+      }
+      const list = await res.json();
+      if (showDropdown) {
+        renderAnalyticsPersonDropdown(list, query);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderAnalyticsPersonDropdown(list, query) {
+    if (!analyticsPersonDropdown) return;
+    analyticsPersonDropdown.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      analyticsPersonDropdown.innerHTML = `
+        <div class="dropdown-empty">
+          No se encontraron participantes con "<strong>${escapeHtml(query)}</strong>".
+        </div>
+      `;
+      analyticsPersonDropdown.style.display = 'block';
+      return;
+    }
+
+    list.forEach((p) => {
+      const item = document.createElement('div');
+      item.className = 'dropdown-item-person';
+      const isNuevo = p.tipo === 'nuevo';
+      const badgeClass = isNuevo ? 'badge-nuevo' : 'badge-consolidado';
+      const visitsText = `${p.total_asistencias || 0} ${p.total_asistencias === 1 ? 'vez' : 'veces'}`;
+      const lastText = p.ultima_asistencia ? formatDisplayDate(p.ultima_asistencia) : 'Sin fecha';
+
+      item.innerHTML = `
+        <div>
+          <div class="dropdown-person-name">${escapeHtml(p.nombre)}</div>
+          <div class="dropdown-person-sub">
+            <span class="badge-status ${badgeClass}" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${isNuevo ? 'Nuevo' : 'Consolidado'}</span>
+            <span>${p.direccion ? escapeHtml(p.direccion) : 'Sin dirección'}</span>
+            <span>• Última: ${escapeHtml(lastText)}</span>
+          </div>
+        </div>
+        <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700; white-space: nowrap;">${visitsText}</span>
+      `;
+      item.addEventListener('click', () => {
+        analyticsPersonDropdown.style.display = 'none';
+        if (analyticsPersonSearch) analyticsPersonSearch.value = p.nombre;
+        if (analyticsPersonClearBtn) analyticsPersonClearBtn.style.display = 'flex';
+        selectAnalyticsPerson(p.id, false);
+      });
+      analyticsPersonDropdown.appendChild(item);
+    });
+
+    analyticsPersonDropdown.style.display = 'block';
+  }
+
+  async function selectAnalyticsPerson(personaId, scrollToSection = false) {
+    if (!state.admin.token || !personaId) return;
+    state.analytics.selectedPersonId = personaId;
+
+    try {
+      const res = await fetch(`/api/analytics/personas/${personaId}`, {
+        headers: adminAuthHeaders()
+      });
+      if (res.status === 401) {
+        await logoutAdmin(false);
+        return;
+      }
+      const detail = await res.json();
+      if (!res.ok) throw new Error(detail.error || 'Error cargando persona');
+
+      renderPersonAnalyticsDetail(detail);
+      if (analyticsPersonSearch) {
+        analyticsPersonSearch.value = detail.persona.nombre;
+      }
+      if (analyticsPersonClearBtn) analyticsPersonClearBtn.style.display = 'flex';
+      if (analyticsPersonDropdown) analyticsPersonDropdown.style.display = 'none';
+
+      if (scrollToSection && analyticsPersonSection) {
+        analyticsPersonSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || 'No se pudo cargar el detalle de la persona', 'error');
+    }
+  }
+
+  function renderPersonAnalyticsDetail(detail) {
+    if (!detail || !analyticsPersonDetail) return;
+    const { persona, geography, stats, history } = detail;
+
+    if (analyticsPersonEmptyHint) analyticsPersonEmptyHint.style.display = 'none';
+    analyticsPersonDetail.style.display = 'block';
+
+    if (personDetailName) personDetailName.textContent = persona.nombre;
+
+    const isNuevo = persona.tipo === 'nuevo';
+    if (personDetailBadges) {
+      personDetailBadges.innerHTML = `
+        <span class="badge-status ${isNuevo ? 'badge-nuevo' : 'badge-consolidado'}">
+          <i class="fa-sharp-duotone fa-solid ${isNuevo ? 'fa-seedling' : 'fa-user-check'}"></i>
+          ${isNuevo ? 'Nuevo' : 'Consolidado'}
+        </span>
+        <span class="today-pill pill-total">
+          <i class="fa-sharp-duotone fa-solid fa-location-dot"></i>
+          ${escapeHtml(geography.city)}
+        </span>
+      `;
+    }
+
+    if (personDetailContact) {
+      const waLink = formatWhatsAppLink(persona.telefono, persona.nombre);
+      personDetailContact.innerHTML = persona.telefono ? `
+        <a href="tel:${escapeHtml(persona.telefono)}" class="btn btn-sm btn-outline">
+          <i class="fa-sharp-duotone fa-solid fa-phone"></i> ${escapeHtml(persona.telefono)}
+        </a>
+        ${waLink ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>` : ''}
+      ` : '<span style="font-size: 0.8rem; color: var(--text-muted);">Sin teléfono registrado</span>';
+    }
+
+    if (personDetailLastVisit) {
+      personDetailLastVisit.textContent = stats.ultimaVisita
+        ? formatDisplayDate(stats.ultimaVisita)
+        : 'Sin fecha registrada';
+    }
+    if (personDetailLastRelative) {
+      personDetailLastRelative.textContent = formatRelativeDays(stats.diasDesdeUltimaVisita);
+    }
+
+    if (personDetailCount) {
+      personDetailCount.textContent = `${stats.totalAsistencias} ${stats.totalAsistencias === 1 ? 'vez' : 'veces'}`;
+    }
+    if (personDetailCountNote) {
+      personDetailCountNote.textContent = (stats.hasUndatedBaseline && stats.totalAsistencias === 0)
+        ? 'Registrado en listado base sin fecha de visita previa'
+        : 'Asistencias registradas con fecha';
+    }
+
+    if (personDetailFirstVisit) {
+      personDetailFirstVisit.textContent = stats.primeraVisita
+        ? formatDisplayDate(stats.primeraVisita)
+        : 'Sin fecha registrada';
+    }
+    if (personDetailGeoTag) {
+      personDetailGeoTag.textContent = geography.hasAddress
+        ? `${geography.city} • ${geography.zone}`
+        : 'Sin dirección registrada';
+    }
+
+    if (personDetailMetaExtra) {
+      const extras = [];
+      if (persona.direccion) {
+        extras.push(`<span class="person-meta-chip"><i class="fa-sharp-duotone fa-solid fa-house"></i> ${escapeHtml(persona.direccion)}</span>`);
+      }
+      if (persona.cumpleanos) {
+        extras.push(`<span class="person-meta-chip"><i class="fa-sharp-duotone fa-solid fa-cake-candles"></i> Cumpleaños: ${escapeHtml(persona.cumpleanos)}</span>`);
+      }
+      if (persona.notas) {
+        extras.push(`<span class="person-meta-chip"><i class="fa-sharp-duotone fa-solid fa-comment-dots"></i> ${escapeHtml(persona.notas)}</span>`);
+      }
+      personDetailMetaExtra.innerHTML = extras.join('');
+    }
+
+    if (personDetailHistory) {
+      personDetailHistory.innerHTML = '';
+      if (!history || history.length === 0) {
+        personDetailHistory.innerHTML = `
+          <div style="font-size: 0.85rem; color: var(--text-muted); padding: 0.75rem; background: white; border: 1px dashed var(--border); border-radius: 6px;">
+            Esta persona aún no tiene fechas de asistencia registradas. Cuando asista y se marque su asistencia aparecerá aquí.
+          </div>
+        `;
+      } else {
+        history.forEach((h, idx) => {
+          const item = document.createElement('div');
+          item.className = 'person-history-item';
+          const hNuevo = h.tipo === 'nuevo';
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 700; font-size: 0.875rem; color: var(--text-main);">
+                #${history.length - idx} • ${escapeHtml(formatDisplayDate(h.fecha_hora))}
+              </div>
+              ${h.notas ? `<div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">${escapeHtml(h.notas)}</div>` : ''}
+            </div>
+            <span class="badge-status ${hNuevo ? 'badge-nuevo' : 'badge-consolidado'}" style="font-size: 0.72rem;">
+              ${hNuevo ? 'Nuevo' : 'Consolidado'}
+            </span>
+          `;
+          personDetailHistory.appendChild(item);
+        });
+      }
+    }
+  }
+
+  // Geographic Distribution
+  function renderGeographicAnalytics(geography) {
+    if (!geography) return;
+    const { summary, cities } = geography;
+
+    if (geoCitiesCountBadge) {
+      geoCitiesCountBadge.textContent = `${summary.totalCiudades} ${summary.totalCiudades === 1 ? 'Ciudad' : 'Ciudades'}`;
+    }
+
+    if (geoSummaryPills) {
+      const pctLocal = summary.totalPersonas > 0 ? Math.round((summary.enSotoDelReal / summary.totalPersonas) * 100) : 0;
+      const pctOther = summary.totalPersonas > 0 ? Math.round((summary.otrasCiudades / summary.totalPersonas) * 100) : 0;
+      geoSummaryPills.innerHTML = `
+        <span class="today-pill pill-nuevo"><i class="fa-sharp-duotone fa-solid fa-church"></i> Soto del Real: <strong>${summary.enSotoDelReal}</strong> (${pctLocal}%)</span>
+        <span class="today-pill pill-consolidado"><i class="fa-sharp-duotone fa-solid fa-car-side"></i> Otras ciudades: <strong>${summary.otrasCiudades}</strong> (${pctOther}%)</span>
+        <span class="today-pill pill-total"><i class="fa-sharp-duotone fa-solid fa-map-pin"></i> Con dirección: <strong>${summary.conDireccion}</strong></span>
+        <span class="today-pill pill-total"><i class="fa-sharp-duotone fa-solid fa-circle-question"></i> Sin dirección: <strong>${summary.sinDireccion}</strong></span>
+      `;
+    }
+
+    if (!state.analytics.selectedCity || !cities.some(c => c.city === state.analytics.selectedCity)) {
+      state.analytics.selectedCity = cities.length > 0 ? cities[0].city : null;
+    }
+
+    if (geoCitiesList) {
+      geoCitiesList.innerHTML = '';
+      if (cities.length === 0) {
+        geoCitiesList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No hay participantes registrados.</div>';
+      } else {
+        const maxCount = Math.max(1, ...cities.map(c => c.count));
+        cities.forEach((c) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `geo-city-row ${state.analytics.selectedCity === c.city ? 'active' : ''}`;
+          const barWidth = Math.max(6, Math.round((c.count / maxCount) * 100));
+          const fillClass = !c.hasAddress ? 'is-missing' : (c.isLocalCity ? 'is-local' : '');
+          const tag = !c.hasAddress ? '' : (c.isLocalCity ? '<span class="today-pill pill-nuevo" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;">Sede Local</span>' : '<span class="today-pill pill-consolidado" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;">Otra ciudad</span>');
+
+          btn.innerHTML = `
+            <div class="geo-city-row-top">
+              <div class="geo-city-name">
+                <span>${escapeHtml(c.city)}</span>
+                ${tag}
+              </div>
+              <div class="geo-city-count">${c.count} (${c.percent}%)</div>
+            </div>
+            <div class="geo-progress-track">
+              <div class="geo-progress-fill ${fillClass}" style="width: ${barWidth}%;"></div>
+            </div>
+          `;
+          btn.addEventListener('click', () => {
+            state.analytics.selectedCity = c.city;
+            state.analytics.geoMode = 'city';
+            renderGeographicAnalytics(geography);
+          });
+          geoCitiesList.appendChild(btn);
+        });
+      }
+    }
+
+    renderGeoDetailPanel(geography);
+  }
+
+  function renderGeoDetailPanel(geography) {
+    if (!geoZonesAndPeople || !geography) return;
+    if (btnGeoModeCity) btnGeoModeCity.classList.toggle('active', state.analytics.geoMode === 'city');
+    if (btnGeoModeAllZones) btnGeoModeAllZones.classList.toggle('active', state.analytics.geoMode === 'allZones');
+
+    geoZonesAndPeople.innerHTML = '';
+
+    if (state.analytics.geoMode === 'allZones') {
+      if (geoSelectedCityTitle) {
+        geoSelectedCityTitle.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-road"></i> Zonas / Calles con Dirección Detallada';
+      }
+      const topZones = geography.topZones || [];
+      if (topZones.length === 0) {
+        geoZonesAndPeople.innerHTML = `
+          <div style="font-size: 0.85rem; color: var(--text-muted); padding: 1rem; background: white; border: 1px dashed var(--border); border-radius: 8px;">
+            Todavía no hay calles, barrios o urbanizaciones detalladas (en la carga base solo se registró el municipio). Al editar o registrar personas con calle/barrio aparecerán agrupadas aquí.
+          </div>
+        `;
+        return;
+      }
+
+      const listDiv = document.createElement('div');
+      listDiv.className = 'geo-zones-list';
+      topZones.forEach((z) => {
+        const card = document.createElement('div');
+        card.className = 'geo-zone-item';
+        card.innerHTML = `
+          <div class="geo-zone-item-head">
+            <span><i class="fa-sharp-duotone fa-solid fa-location-dot" style="color: var(--primary);"></i> ${escapeHtml(z.zone)} <small style="color: var(--text-muted); font-weight: 500;">(${escapeHtml(z.city)})</small></span>
+            <span class="today-pill pill-consolidado">${z.count} ${z.count === 1 ? 'persona' : 'personas'}</span>
+          </div>
+        `;
+        listDiv.appendChild(card);
+      });
+      geoZonesAndPeople.appendChild(listDiv);
+      return;
+    }
+
+    const cityObj = (geography.cities || []).find(c => c.city === state.analytics.selectedCity);
+    if (!cityObj) return;
+
+    if (geoSelectedCityTitle) {
+      geoSelectedCityTitle.innerHTML = `<i class="fa-sharp-duotone fa-solid fa-road"></i> ${escapeHtml(cityObj.city)} (${cityObj.count})`;
+    }
+
+    const zonesContainer = document.createElement('div');
+    zonesContainer.className = 'geo-zones-list';
+
+    (cityObj.zones || []).forEach((z) => {
+      const zItem = document.createElement('div');
+      zItem.className = 'geo-zone-item';
+
+      const head = document.createElement('div');
+      head.className = 'geo-zone-item-head';
+      head.innerHTML = `
+        <span><i class="fa-sharp-duotone fa-solid fa-signs-post" style="color: ${z.isKnownZone ? 'var(--primary)' : '#94a3b8'};"></i> ${escapeHtml(z.zone)}</span>
+        <span class="today-pill pill-total">${z.count}</span>
+      `;
+      zItem.appendChild(head);
+
+      const tagsWrap = document.createElement('div');
+      tagsWrap.className = 'geo-zone-people-tags';
+      z.personas.forEach((p) => {
+        const tagBtn = document.createElement('button');
+        tagBtn.type = 'button';
+        tagBtn.className = 'geo-person-tag';
+        tagBtn.textContent = p.nombre;
+        tagBtn.title = 'Ver historial de visitas de ' + p.nombre;
+        tagBtn.addEventListener('click', () => selectAnalyticsPerson(p.id, true));
+        tagsWrap.appendChild(tagBtn);
+      });
+      zItem.appendChild(tagsWrap);
+      zonesContainer.appendChild(zItem);
+    });
+
+    geoZonesAndPeople.appendChild(zonesContainer);
+  }
+
+  // Attach Analytics Navigation & Events
+  if (btnOpenAnalyticsPage) btnOpenAnalyticsPage.addEventListener('click', () => openAnalyticsPage(true));
+  if (btnAdminGoAnalytics) btnAdminGoAnalytics.addEventListener('click', () => openAnalyticsPage(true));
+  if (btnBackToHome) btnBackToHome.addEventListener('click', () => openHomePage(true));
+  if (btnRefreshAnalytics) btnRefreshAnalytics.addEventListener('click', () => syncAnalyticsAccessState());
+  if (btnAnalyticsLogout) btnAnalyticsLogout.addEventListener('click', () => logoutAdmin(true));
+
+  if (analyticsLoginForm) {
+    analyticsLoginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = analyticsLoginUser ? analyticsLoginUser.value.trim() : '';
+      const p = analyticsLoginPass ? analyticsLoginPass.value : '';
+      if (!u || !p) return;
+
+      if (btnAnalyticsLogin) {
+        btnAnalyticsLogin.disabled = true;
+        btnAnalyticsLogin.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-spinner fa-spin"></i> Verificando...';
+      }
+      if (analyticsLoginError) analyticsLoginError.style.display = 'none';
+
+      try {
+        const user = await authenticateAdmin(u, p);
+        showToast(`¡Bienvenida ${user.username}! Acceso concedido`, 'success');
+        await syncAnalyticsAccessState();
+      } catch (err) {
+        if (analyticsLoginError) {
+          analyticsLoginError.style.display = 'flex';
+          analyticsLoginError.innerHTML = `<i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> ${escapeHtml(err.message)}`;
+        }
+        if (analyticsLoginPass) {
+          analyticsLoginPass.focus();
+          analyticsLoginPass.select();
+        }
+      } finally {
+        if (btnAnalyticsLogin) {
+          btnAnalyticsLogin.disabled = false;
+          btnAnalyticsLogin.innerHTML = '<i class="fa-sharp-duotone fa-solid fa-right-to-bracket"></i> Acceder a Analíticas';
+        }
+      }
+    });
+  }
+
+  analyticsPresetBtns.forEach(btn => {
+    btn.addEventListener('click', () => setAnalyticsPreset(btn.dataset.preset));
+  });
+
+  if (btnApplySingleDate) {
+    btnApplySingleDate.addEventListener('click', () => {
+      const val = analyticsSingleDate ? analyticsSingleDate.value : '';
+      if (!val) {
+        showToast('Selecciona una fecha específica', 'error');
+        return;
+      }
+      analyticsPresetBtns.forEach(b => b.classList.remove('active'));
+      state.analytics.filter = { ...state.analytics.filter, mode: 'date', date: val };
+      loadAnalyticsOverview();
+    });
+  }
+
+  if (btnApplyRange) {
+    btnApplyRange.addEventListener('click', () => {
+      const from = analyticsDateFrom ? analyticsDateFrom.value : '';
+      const to = analyticsDateTo ? analyticsDateTo.value : '';
+      if (!from && !to) {
+        showToast('Selecciona al menos una fecha de inicio o fin', 'error');
+        return;
+      }
+      analyticsPresetBtns.forEach(b => b.classList.remove('active'));
+      state.analytics.filter = { ...state.analytics.filter, mode: 'range', dateFrom: from, dateTo: to };
+      loadAnalyticsOverview();
+    });
+  }
+
+  let analyticsSearchTimer;
+  if (analyticsPersonSearch) {
+    analyticsPersonSearch.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (analyticsPersonClearBtn) analyticsPersonClearBtn.style.display = val ? 'flex' : 'none';
+      clearTimeout(analyticsSearchTimer);
+      analyticsSearchTimer = setTimeout(() => loadAnalyticsPersonas(val, true), 180);
+    });
+    analyticsPersonSearch.addEventListener('focus', () => {
+      loadAnalyticsPersonas(analyticsPersonSearch.value.trim(), true);
+    });
+  }
+
+  if (analyticsPersonClearBtn) {
+    analyticsPersonClearBtn.addEventListener('click', () => {
+      if (analyticsPersonSearch) analyticsPersonSearch.value = '';
+      analyticsPersonClearBtn.style.display = 'none';
+      loadAnalyticsPersonas('', true);
+      if (analyticsPersonSearch) analyticsPersonSearch.focus();
+    });
+  }
+
+  if (btnGeoModeCity) {
+    btnGeoModeCity.addEventListener('click', () => {
+      state.analytics.geoMode = 'city';
+      if (state.analytics.overview) renderGeoDetailPanel(state.analytics.overview.geography);
+    });
+  }
+
+  if (btnGeoModeAllZones) {
+    btnGeoModeAllZones.addEventListener('click', () => {
+      state.analytics.geoMode = 'allZones';
+      if (state.analytics.overview) renderGeoDetailPanel(state.analytics.overview.geography);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (analyticsPersonDropdown && !e.target.closest('#analyticsPersonSection .searchable-dropdown-wrapper')) {
+      analyticsPersonDropdown.style.display = 'none';
+    }
+  });
+
+  window.addEventListener('popstate', () => {
+    if (window.location.pathname === '/analiticas') {
+      openAnalyticsPage(false);
+    } else {
+      openHomePage(false);
+    }
+  });
+
   // Close modals on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -1367,11 +2211,16 @@ document.addEventListener('DOMContentLoaded', () => {
       importModal.classList.remove('open');
       exportDropdown.classList.remove('open');
       asistDropdownResults.style.display = 'none';
+      if (analyticsPersonDropdown) analyticsPersonDropdown.style.display = 'none';
     }
   });
 
   // --- INITIALIZATION ---
   startClock();
-  fetchStats();
-  fetchAsistencias();
+  if (window.location.pathname === '/analiticas') {
+    openAnalyticsPage(false);
+  } else {
+    fetchStats();
+    fetchAsistencias();
+  }
 });

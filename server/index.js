@@ -5,6 +5,7 @@ const multer = require('multer');
 const os = require('os');
 const crypto = require('crypto');
 const db = require('./db');
+const analytics = require('./analyticsService');
 const { generateExcel, parseUploadedExcel } = require('./excelService');
 
 const app = express();
@@ -387,6 +388,57 @@ app.post('/api/admin/logout', (req, res) => {
     adminSessions.delete(token);
   }
   res.json({ success: true, message: 'Sesión de administrador cerrada' });
+});
+
+// ========================================================
+// RUTAS DE ANALÍTICAS (EXCLUSIVO ADMINISTRADORES)
+// ========================================================
+
+// Resumen de nuevos ingresos (por fecha/rango) y distribución geográfica
+app.get('/api/analytics/overview', requireAdminAuth, (req, res) => {
+  try {
+    const entries = analytics.getNewEntriesAnalytics({
+      mode: req.query.mode,
+      days: req.query.days,
+      date: req.query.date,
+      dateFrom: req.query.dateFrom,
+      dateTo: req.query.dateTo
+    });
+    const geography = analytics.getGeographicAnalytics();
+    res.json({ entries, geography });
+  } catch (error) {
+    console.error('Error en analíticas generales:', error);
+    res.status(500).json({ error: 'Error al generar las analíticas' });
+  }
+});
+
+// Listado buscable de participantes con frecuencia de asistencia (solo admin)
+app.get('/api/analytics/personas', requireAdminAuth, (req, res) => {
+  try {
+    const results = analytics.getAnalyticsPersonasList(req.query.q || '');
+    res.json(results);
+  } catch (error) {
+    console.error('Error al listar participantes para analíticas:', error);
+    res.status(500).json({ error: 'Error al consultar participantes' });
+  }
+});
+
+// Detalle e historial de visitas de un participante (solo admin)
+app.get('/api/analytics/personas/:id', requireAdminAuth, (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de persona inválido' });
+    }
+    const detail = analytics.getPersonaAnalyticsDetail(id);
+    if (!detail) {
+      return res.status(404).json({ error: 'Persona no encontrada' });
+    }
+    res.json(detail);
+  } catch (error) {
+    console.error('Error al obtener detalle analítico de persona:', error);
+    res.status(500).json({ error: 'Error al obtener analíticas de la persona' });
+  }
 });
 
 // 8. Export to Excel (.xlsx)

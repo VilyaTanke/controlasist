@@ -1,4 +1,5 @@
 const db = require('../server/db');
+const analytics = require('../server/analyticsService');
 const { generateExcel, parseUploadedExcel } = require('../server/excelService');
 
 async function runTests() {
@@ -101,6 +102,69 @@ async function runTests() {
   }
   db.deleteAdminUser(newAdmin.id);
   console.log('   Autenticación y gestión Admin: OK');
+
+  // 8. Test Módulo de Analíticas y Geografía
+  console.log('5. Probando módulo de Analíticas y Geografía...');
+  const geo1 = analytics.parseAddressGeography('Calle Real, 14, 28791 Soto del Real, Madrid');
+  if (geo1.city !== 'Soto del Real' || geo1.zone !== 'Calle Real' || !geo1.isLocalCity) {
+    throw new Error(`Error parseo geo1: ${JSON.stringify(geo1)}`);
+  }
+  const geo2 = analytics.parseAddressGeography('Colmenar');
+  if (geo2.city !== 'Colmenar Viejo' || geo2.isLocalCity) {
+    throw new Error(`Error parseo geo2: ${JSON.stringify(geo2)}`);
+  }
+  const geo3 = analytics.parseAddressGeography('Carabanchel, Madrid');
+  if (geo3.city !== 'Madrid' || geo3.zone !== 'Carabanchel') {
+    throw new Error(`Error parseo geo3: ${JSON.stringify(geo3)}`);
+  }
+
+  let testPersonaId = null;
+  try {
+    const pCreated = db.create({
+      nombre: 'Analítica Test Persona',
+      telefono: '699000111',
+      direccion: 'Calle del Prado, 15, Soto del Real',
+      tipo: 'nuevo',
+      fecha_hora_registro: '2026-11-10 18:00:00'
+    });
+    testPersonaId = pCreated.persona_id;
+    db.registrarAsistencia({
+      persona_id: testPersonaId,
+      fecha_hora: '2026-11-12 18:00:00',
+      tipo: 'consolidado',
+      notas: 'Segunda visita CI'
+    });
+
+    const entriesDay = analytics.getNewEntriesAnalytics({ mode: 'date', date: '2026-11-10' });
+    if (entriesDay.totals.nuevosPrimerIngreso < 1) {
+      throw new Error('Error en filtro por fecha específica de nuevos ingresos');
+    }
+    const entriesRange = analytics.getNewEntriesAnalytics({
+      mode: 'range',
+      dateFrom: '2026-11-10',
+      dateTo: '2026-11-12'
+    });
+    if (entriesRange.totals.totalAsistencias < 2) {
+      throw new Error('Error en conteo de asistencias por rango');
+    }
+
+    const detail = analytics.getPersonaAnalyticsDetail(testPersonaId);
+    if (!detail || detail.stats.totalAsistencias !== 2 || detail.stats.ultimaVisita !== '2026-11-12 18:00:00') {
+      throw new Error(`Error en detalle analítico de persona: ${JSON.stringify(detail)}`);
+    }
+
+    const geoReport = analytics.getGeographicAnalytics();
+    const sotoCity = geoReport.cities.find(c => c.city === 'Soto del Real');
+    if (!sotoCity || !sotoCity.zones.some(z => z.zone === 'Calle del Prado')) {
+      throw new Error('Error en agrupación geográfica de ciudades/zonas');
+    }
+  } finally {
+    if (testPersonaId) {
+      db.db.prepare('DELETE FROM asistencias WHERE persona_id = ?').run(testPersonaId);
+      db.db.prepare('DELETE FROM personas WHERE id = ?').run(testPersonaId);
+    }
+  }
+  console.log('   Analíticas y distribución geográfica: OK');
 
   console.log('--- ✅ TODAS LAS PRUEBAS PASARON EXITOSAMENTE ---');
 }

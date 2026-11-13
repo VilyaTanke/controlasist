@@ -8,7 +8,7 @@
   <!-- Font Awesome 6.7.2 (Supports Font Awesome Sharp Duotone syntax with Free fallback & Pro kit) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="css/styles.css?v=2.3">
+  <link rel="stylesheet" href="/css/styles.css?v=2.4">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 512%22 fill=%22%231e3a8a%22><path d=%22M344 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V48H264c-13.3 0-24 10.7-24 24s10.7 24 24 24h32v48H264c-13.3 0-24 10.7-24 24s10.7 24 24 24h32v45.3L166.6 304.7c-4.2 3.5-9.5 5.3-14.6 5.3H96c-17.7 0-32 14.3-32 32v128c0 23.5-12.7 42.1-32 42.1H16c-8.8 0-16 7.2-16 16s7.2 16 16 16h608c8.8 0 16-7.2 16-16s-7.2-16-16-16H608c-19.3 0-32-18.6-32-42.1V342c0-17.7-14.3-32-32-32H488c-5.1 0-10.4-1.8-14.6-5.3L344 237.3V24zM320 288a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm-48 112h96v112H272V400z%22/></svg>">
 </head>
@@ -34,6 +34,10 @@
               <span class="live-pulse"></span>
               <span>Sistema Activo</span>
             </div>
+            <button type="button" class="btn-admin-pill btn-analytics-pill" id="btnOpenAnalyticsPage" title="Página de Analíticas (Solo Admin)">
+              <i class="fa-sharp-duotone fa-solid fa-chart-line"></i>
+              <span>Analíticas</span>
+            </button>
             <button type="button" class="btn-admin-pill" id="btnOpenAdminPanel" title="Panel de Gestión de Administradores">
               <i class="fa-sharp-duotone fa-solid fa-user-shield"></i>
               <span>Admin</span>
@@ -74,6 +78,9 @@
         </div>
       </details>
     </header>
+
+    <!-- VISTA PRINCIPAL DE CONTROL -->
+    <div id="homeControlView">
 
     <!-- Resumen rápido del culto actual -->
     <div class="today-summary-banner">
@@ -231,6 +238,298 @@
         </div>
 
       </div>
+    </section>
+
+    </div><!-- /#homeControlView -->
+
+    <!-- ======================================================== -->
+    <!-- VISTA EXCLUSIVA ADMIN: PÁGINA DE ANALÍTICAS              -->
+    <!-- ======================================================== -->
+    <section id="analyticsView" class="analytics-page" style="display: none;">
+
+      <!-- Barra de navegación superior de Analíticas -->
+      <div class="analytics-topbar">
+        <div class="analytics-topbar-left">
+          <button type="button" class="btn btn-outline btn-sm" id="btnBackToHome">
+            <i class="fa-sharp-duotone fa-solid fa-arrow-left"></i>
+            <span>Volver a Control</span>
+          </button>
+          <div class="analytics-page-title">
+            <h2><i class="fa-sharp-duotone fa-solid fa-chart-pie"></i> Analíticas e Informes</h2>
+            <span class="analytics-admin-tag">
+              <i class="fa-sharp-duotone fa-solid fa-shield-halved"></i>
+              <span id="analyticsAdminBadgeText">Solo Admin</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="analytics-topbar-actions" id="analyticsTopbarActions" style="display: none;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnRefreshAnalytics" title="Actualizar datos">
+            <i class="fa-sharp-duotone fa-solid fa-arrows-rotate"></i>
+            <span>Actualizar</span>
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btnAnalyticsLogout" title="Cerrar sesión Admin">
+            <i class="fa-sharp-duotone fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Salir</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- GATE DE SEGURIDAD: SOLO ADMIN -->
+      <div id="analyticsAuthGate" class="card analytics-auth-gate">
+        <div class="card-body">
+          <div class="admin-login-notice">
+            <div class="admin-lock-circle">
+              <i class="fa-sharp-duotone fa-solid fa-chart-line"></i>
+            </div>
+            <h4>Analíticas — Acceso Exclusivo Admin</h4>
+            <p>Inicia sesión con un usuario Administrador para consultar ingresos de nuevas personas, historial individual y distribución geográfica.</p>
+          </div>
+
+          <form id="analyticsLoginForm" class="analytics-login-form">
+            <div class="form-group">
+              <label class="form-label" for="analyticsLoginUser">Usuario Admin <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
+                <input type="text" id="analyticsLoginUser" class="form-control" placeholder="Ej: Pastora" value="Pastora" required autocomplete="username">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="analyticsLoginPass">Contraseña <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
+                <input type="password" id="analyticsLoginPass" class="form-control" placeholder="Introduce contraseña" required autocomplete="current-password">
+              </div>
+            </div>
+
+            <div class="admin-auth-error" id="analyticsLoginError" style="display: none;"></div>
+
+            <div style="margin-top: 1.25rem;">
+              <button type="submit" class="btn btn-primary" style="width: 100%;" id="btnAnalyticsLogin">
+                <i class="fa-sharp-duotone fa-solid fa-right-to-bracket"></i> Acceder a Analíticas
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- CONTENIDO DE ANALÍTICAS (SOLO TRAS AUTENTICACIÓN ADMIN) -->
+      <div id="analyticsDashboard" style="display: none;">
+
+        <!-- 1. INGRESOS DE PERSONAS NUEVAS POR FECHA / RANGO -->
+        <article class="card analytics-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3><i class="fa-sharp-duotone fa-solid fa-user-plus"></i> Nuevas Personas e Ingresos</h3>
+              <p id="analyticsPeriodLabel">Cargando período...</p>
+            </div>
+            <span class="today-pill pill-nuevo" id="analyticsPeriodRangeBadge">-</span>
+          </div>
+
+          <div class="card-body">
+            <!-- Controles de filtro por días, fecha específica o rango -->
+            <div class="analytics-filter-bar">
+              <div class="analytics-presets" id="analyticsPresetsGroup">
+                <button type="button" class="filter-pill" data-preset="7">Últimos 7 días</button>
+                <button type="button" class="filter-pill" data-preset="14">Últimos 14 días</button>
+                <button type="button" class="filter-pill active" data-preset="30">Últimos 30 días</button>
+                <button type="button" class="filter-pill" data-preset="90">90 días</button>
+                <button type="button" class="filter-pill" data-preset="all">Todo</button>
+              </div>
+
+              <div class="analytics-date-controls">
+                <div class="analytics-date-group">
+                  <label for="analyticsSingleDate"><i class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Fecha específica</label>
+                  <div class="analytics-input-inline">
+                    <input type="date" id="analyticsSingleDate" class="form-control no-icon">
+                    <button type="button" class="btn btn-outline btn-sm" id="btnApplySingleDate">Ver día</button>
+                  </div>
+                </div>
+
+                <div class="analytics-date-group analytics-range-group">
+                  <label><i class="fa-sharp-duotone fa-solid fa-calendar-range"></i> Rango personalizado</label>
+                  <div class="analytics-input-inline">
+                    <input type="date" id="analyticsDateFrom" class="form-control no-icon" aria-label="Desde">
+                    <span class="range-sep">a</span>
+                    <input type="date" id="analyticsDateTo" class="form-control no-icon" aria-label="Hasta">
+                    <button type="button" class="btn btn-primary btn-sm" id="btnApplyRange">Aplicar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- KPIs del período -->
+            <div class="analytics-kpi-grid">
+              <div class="analytics-kpi-box kpi-green">
+                <div class="kpi-icon"><i class="fa-sharp-duotone fa-solid fa-seedling"></i></div>
+                <div class="kpi-info">
+                  <span class="kpi-label">Nuevos Ingresos (1ª vez)</span>
+                  <strong class="kpi-value" id="kpiNuevosIngreso">0</strong>
+                  <span class="kpi-sub">Entraron como nuevos en el período</span>
+                </div>
+              </div>
+
+              <div class="analytics-kpi-box kpi-blue">
+                <div class="kpi-icon"><i class="fa-sharp-duotone fa-solid fa-users"></i></div>
+                <div class="kpi-info">
+                  <span class="kpi-label">Visitantes con estado Nuevo</span>
+                  <strong class="kpi-value" id="kpiNuevosVisitantes">0</strong>
+                  <span class="kpi-sub">Personas únicas marcadas Nuevo</span>
+                </div>
+              </div>
+
+              <div class="analytics-kpi-box kpi-indigo">
+                <div class="kpi-icon"><i class="fa-sharp-duotone fa-solid fa-clipboard-check"></i></div>
+                <div class="kpi-info">
+                  <span class="kpi-label">Total Asistencias</span>
+                  <strong class="kpi-value" id="kpiTotalAsistencias">0</strong>
+                  <span class="kpi-sub" id="kpiAsistenciasDesglose">0 nuevos • 0 consolidados</span>
+                </div>
+              </div>
+
+              <div class="analytics-kpi-box kpi-slate">
+                <div class="kpi-icon"><i class="fa-sharp-duotone fa-solid fa-address-book"></i></div>
+                <div class="kpi-info">
+                  <span class="kpi-label">Directorio Total</span>
+                  <strong class="kpi-value" id="kpiDirectorioTotal">0</strong>
+                  <span class="kpi-sub">Participantes registrados en BD</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráfica temporal -->
+            <div class="analytics-chart-wrapper">
+              <div class="analytics-chart-header">
+                <h4><i class="fa-sharp-duotone fa-solid fa-chart-column"></i> Evolución en el Período</h4>
+                <div class="chart-legend">
+                  <span><i class="legend-dot dot-green"></i> Nuevos ingresos</span>
+                  <span><i class="legend-dot dot-blue"></i> Total asistencias</span>
+                </div>
+              </div>
+              <div id="analyticsChartPointInfo" class="chart-point-info">Toca o pasa el cursor por una barra para ver el detalle exacto.</div>
+              <div class="analytics-bar-chart" id="analyticsTimelineChart"></div>
+            </div>
+
+            <!-- Listado de personas nuevas que entraron en el rango -->
+            <div class="analytics-sublist-box">
+              <div class="analytics-sublist-header">
+                <h4><i class="fa-sharp-duotone fa-solid fa-list-check"></i> Personas Nuevas Ingresadas en este Período (<span id="analyticsNewPeopleCount">0</span>)</h4>
+              </div>
+              <div id="analyticsNewPeopleList" class="analytics-people-grid"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. CONSULTA DE PERSONA: ÚLTIMA VISITA Y VECES QUE HA VENIDO -->
+        <article class="card analytics-card" id="analyticsPersonSection">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3><i class="fa-sharp-duotone fa-solid fa-user-clock"></i> Consulta por Participante</h3>
+              <p>Selecciona a una persona para ver su última visita y cuántas veces ha asistido</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" for="analyticsPersonSearch">Seleccionar o Buscar Participante</label>
+              <div class="searchable-dropdown-wrapper">
+                <div class="input-wrapper">
+                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
+                  <input type="text" id="analyticsPersonSearch" class="form-control" placeholder="Escribe un nombre, teléfono o localidad..." autocomplete="off">
+                  <button type="button" id="analyticsPersonClearBtn" class="clear-search-btn" style="display: none;" title="Limpiar búsqueda"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="dropdown-results-container" id="analyticsPersonDropdown" style="display: none;"></div>
+              </div>
+            </div>
+
+            <div id="analyticsPersonEmptyHint" class="analytics-empty-hint">
+              <i class="fa-sharp-duotone fa-solid fa-hand-pointer"></i>
+              <p>Busca y selecciona cualquier participante arriba (o haz clic sobre alguien en ingresos o zonas geográficas) para consultar su frecuencia y última asistencia.</p>
+            </div>
+
+            <div id="analyticsPersonDetail" class="analytics-person-detail" style="display: none;">
+              <div class="person-detail-header">
+                <div class="person-detail-identity">
+                  <div class="selected-person-avatar"><i class="fa-sharp-duotone fa-solid fa-user"></i></div>
+                  <div>
+                    <h4 id="personDetailName">-</h4>
+                    <div class="person-detail-badges" id="personDetailBadges"></div>
+                  </div>
+                </div>
+                <div class="person-detail-contact" id="personDetailContact"></div>
+              </div>
+
+              <div class="person-detail-stats-grid">
+                <div class="person-stat-tile tile-last">
+                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-clock-rotate-left"></i> Última vez que vino</span>
+                  <strong class="tile-value" id="personDetailLastVisit">-</strong>
+                  <span class="tile-sub" id="personDetailLastRelative">-</span>
+                </div>
+
+                <div class="person-stat-tile tile-count">
+                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-repeat"></i> Veces que ha venido</span>
+                  <strong class="tile-value" id="personDetailCount">0</strong>
+                  <span class="tile-sub" id="personDetailCountNote">-</span>
+                </div>
+
+                <div class="person-stat-tile tile-first">
+                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-flag-checkered"></i> Primera visita registrada</span>
+                  <strong class="tile-value" id="personDetailFirstVisit">-</strong>
+                  <span class="tile-sub" id="personDetailGeoTag">-</span>
+                </div>
+              </div>
+
+              <div class="person-detail-meta-extra" id="personDetailMetaExtra"></div>
+
+              <div class="person-history-section">
+                <h5><i class="fa-sharp-duotone fa-solid fa-timeline"></i> Historial de Asistencias</h5>
+                <div id="personDetailHistory" class="person-history-list"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. DISTRIBUCIÓN GEOGRÁFICA -->
+        <article class="card analytics-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3><i class="fa-sharp-duotone fa-solid fa-map-location-dot"></i> Distribución Geográfica</h3>
+              <p>Agrupación por ciudad/municipio y zona o calle de la ciudad</p>
+            </div>
+            <span class="today-pill pill-consolidado" id="geoCitiesCountBadge">0 Ciudades</span>
+          </div>
+
+          <div class="card-body">
+            <div class="geo-summary-pills" id="geoSummaryPills"></div>
+
+            <div class="geo-analytics-grid">
+              <!-- Columna izquierda: Ciudades / Municipios -->
+              <div class="geo-panel">
+                <div class="geo-panel-header">
+                  <h4><i class="fa-sharp-duotone fa-solid fa-city"></i> Por Ciudad / Municipio</h4>
+                  <span class="geo-panel-hint">Toca una ciudad para ver sus zonas</span>
+                </div>
+                <div id="geoCitiesList" class="geo-bars-list"></div>
+              </div>
+
+              <!-- Columna derecha: Partes de la ciudad / Zonas y Participantes -->
+              <div class="geo-panel">
+                <div class="geo-panel-header">
+                  <h4 id="geoSelectedCityTitle"><i class="fa-sharp-duotone fa-solid fa-road"></i> Zonas / Calles y Participantes</h4>
+                  <div class="geo-mode-tabs">
+                    <button type="button" class="geo-tab-btn active" id="btnGeoModeCity">Ciudad actual</button>
+                    <button type="button" class="geo-tab-btn" id="btnGeoModeAllZones">Todas las zonas</button>
+                  </div>
+                </div>
+                <div id="geoZonesAndPeople" class="geo-detail-content"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div><!-- /#analyticsDashboard -->
+
     </section>
 
   </div>
@@ -707,9 +1006,14 @@
               <span>Sesión activa: <strong id="currentAdminName">Pastora</strong></span>
               <span class="badge-status badge-consolidado" style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Admin</span>
             </div>
-            <button type="button" class="btn btn-sm btn-outline" id="btnLogoutAdmin" title="Cerrar sesión de admin">
-              <i class="fa-sharp-duotone fa-solid fa-arrow-right-from-bracket"></i> Salir
-            </button>
+            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-primary" id="btnAdminGoAnalytics" title="Abrir página de Analíticas">
+                <i class="fa-sharp-duotone fa-solid fa-chart-line"></i> Analíticas
+              </button>
+              <button type="button" class="btn btn-sm btn-outline" id="btnLogoutAdmin" title="Cerrar sesión de admin">
+                <i class="fa-sharp-duotone fa-solid fa-arrow-right-from-bracket"></i> Salir
+              </button>
+            </div>
           </div>
 
           <!-- Listado de Administradores -->
@@ -832,7 +1136,7 @@
   <!-- Contenedor para Notificaciones Toast -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="js/app.js?v=2.2"></script>
+  <script src="/js/app.js?v=2.4"></script>
 </body>
 
 </html>
