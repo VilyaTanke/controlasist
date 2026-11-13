@@ -8,7 +8,7 @@
   <!-- Font Awesome 6.7.2 (Supports Font Awesome Sharp Duotone syntax with Free fallback & Pro kit) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="/css/styles.css?v=2.4">
+  <link rel="stylesheet" href="/css/styles.css?v=2.5">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 512%22 fill=%22%231e3a8a%22><path d=%22M344 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V48H264c-13.3 0-24 10.7-24 24s10.7 24 24 24h32v48H264c-13.3 0-24 10.7-24 24s10.7 24 24 24h32v45.3L166.6 304.7c-4.2 3.5-9.5 5.3-14.6 5.3H96c-17.7 0-32 14.3-32 32v128c0 23.5-12.7 42.1-32 42.1H16c-8.8 0-16 7.2-16 16s7.2 16 16 16h608c8.8 0 16-7.2 16-16s-7.2-16-16-16H608c-19.3 0-32-18.6-32-42.1V342c0-17.7-14.3-32-32-32H488c-5.1 0-10.4-1.8-14.6-5.3L344 237.3V24zM320 288a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm-48 112h96v112H272V400z%22/></svg>">
 </head>
@@ -317,7 +317,59 @@
       <!-- CONTENIDO DE ANALÍTICAS (SOLO TRAS AUTENTICACIÓN ADMIN) -->
       <div id="analyticsDashboard" style="display: none;">
 
-        <!-- 1. INGRESOS DE PERSONAS NUEVAS POR FECHA / RANGO -->
+        <!-- 1. DISTRIBUCIÓN GEOGRÁFICA + GRÁFICO ÚNICO DE TORTA 3D (ANIME.JS) -->
+        <article class="card analytics-card" id="analyticsGeoSection">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3><i class="fa-sharp-duotone fa-solid fa-map-location-dot"></i> Distribución Geográfica</h3>
+              <p>Agrupación por ciudad/municipio y zona o calle de la ciudad</p>
+            </div>
+            <span class="today-pill pill-consolidado" id="geoCitiesCountBadge">0 Ciudades</span>
+          </div>
+
+          <div class="card-body">
+            <div class="geo-summary-row">
+              <div class="geo-summary-pills" id="geoSummaryPills"></div>
+              <div class="geo-scope-toggle" role="group" aria-label="Filtro gráfico 3D">
+                <button type="button" class="geo-tab-btn active" id="btnGeoScopeAll">Todas las personas</button>
+                <button type="button" class="geo-tab-btn" id="btnGeoScopeKnown">Solo con dirección</button>
+              </div>
+            </div>
+
+            <div class="geo-analytics-grid">
+              <!-- Columna izquierda: Único Gráfico de Torta 3D animado con Anime.js + Leyenda -->
+              <div class="geo-panel geo-pie-panel">
+                <div class="geo-panel-header">
+                  <h4><i class="fa-sharp-duotone fa-solid fa-chart-pie"></i> Gráfico de Torta 3D por Ciudad</h4>
+                  <span class="geo-panel-hint">Toca una porción o ciudad para explorar</span>
+                </div>
+
+                <div class="pie3d-stage">
+                  <div id="pie3dActiveInfo" class="pie3d-active-info">Cargando gráfico 3D...</div>
+                  <div class="pie3d-svg-box">
+                    <svg id="geoPie3dSvg" viewBox="0 0 460 310" role="img" aria-label="Gráfico de torta 3D de distribución geográfica"></svg>
+                  </div>
+                </div>
+
+                <div id="geoCitiesList" class="geo-legend-list"></div>
+              </div>
+
+              <!-- Columna derecha: Partes de la ciudad / Zonas y Participantes -->
+              <div class="geo-panel">
+                <div class="geo-panel-header">
+                  <h4 id="geoSelectedCityTitle"><i class="fa-sharp-duotone fa-solid fa-road"></i> Zonas / Calles y Participantes</h4>
+                  <div class="geo-mode-tabs">
+                    <button type="button" class="geo-tab-btn active" id="btnGeoModeCity">Ciudad actual</button>
+                    <button type="button" class="geo-tab-btn" id="btnGeoModeAllZones">Todas las zonas</button>
+                  </div>
+                </div>
+                <div id="geoZonesAndPeople" class="geo-detail-content"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. INGRESOS DE PERSONAS NUEVAS POR FECHA / RANGO -->
         <article class="card analytics-card">
           <div class="card-header">
             <div class="card-title-group">
@@ -398,19 +450,6 @@
               </div>
             </div>
 
-            <!-- Gráfica temporal -->
-            <div class="analytics-chart-wrapper">
-              <div class="analytics-chart-header">
-                <h4><i class="fa-sharp-duotone fa-solid fa-chart-column"></i> Evolución en el Período</h4>
-                <div class="chart-legend">
-                  <span><i class="legend-dot dot-green"></i> Nuevos ingresos</span>
-                  <span><i class="legend-dot dot-blue"></i> Total asistencias</span>
-                </div>
-              </div>
-              <div id="analyticsChartPointInfo" class="chart-point-info">Toca o pasa el cursor por una barra para ver el detalle exacto.</div>
-              <div class="analytics-bar-chart" id="analyticsTimelineChart"></div>
-            </div>
-
             <!-- Listado de personas nuevas que entraron en el rango -->
             <div class="analytics-sublist-box">
               <div class="analytics-sublist-header">
@@ -421,7 +460,7 @@
           </div>
         </article>
 
-        <!-- 2. CONSULTA DE PERSONA: ÚLTIMA VISITA Y VECES QUE HA VENIDO -->
+        <!-- 3. CONSULTA DE PERSONA: ÚLTIMA VISITA Y VECES QUE HA VENIDO -->
         <article class="card analytics-card" id="analyticsPersonSection">
           <div class="card-header">
             <div class="card-title-group">
@@ -485,44 +524,6 @@
               <div class="person-history-section">
                 <h5><i class="fa-sharp-duotone fa-solid fa-timeline"></i> Historial de Asistencias</h5>
                 <div id="personDetailHistory" class="person-history-list"></div>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- 3. DISTRIBUCIÓN GEOGRÁFICA -->
-        <article class="card analytics-card">
-          <div class="card-header">
-            <div class="card-title-group">
-              <h3><i class="fa-sharp-duotone fa-solid fa-map-location-dot"></i> Distribución Geográfica</h3>
-              <p>Agrupación por ciudad/municipio y zona o calle de la ciudad</p>
-            </div>
-            <span class="today-pill pill-consolidado" id="geoCitiesCountBadge">0 Ciudades</span>
-          </div>
-
-          <div class="card-body">
-            <div class="geo-summary-pills" id="geoSummaryPills"></div>
-
-            <div class="geo-analytics-grid">
-              <!-- Columna izquierda: Ciudades / Municipios -->
-              <div class="geo-panel">
-                <div class="geo-panel-header">
-                  <h4><i class="fa-sharp-duotone fa-solid fa-city"></i> Por Ciudad / Municipio</h4>
-                  <span class="geo-panel-hint">Toca una ciudad para ver sus zonas</span>
-                </div>
-                <div id="geoCitiesList" class="geo-bars-list"></div>
-              </div>
-
-              <!-- Columna derecha: Partes de la ciudad / Zonas y Participantes -->
-              <div class="geo-panel">
-                <div class="geo-panel-header">
-                  <h4 id="geoSelectedCityTitle"><i class="fa-sharp-duotone fa-solid fa-road"></i> Zonas / Calles y Participantes</h4>
-                  <div class="geo-mode-tabs">
-                    <button type="button" class="geo-tab-btn active" id="btnGeoModeCity">Ciudad actual</button>
-                    <button type="button" class="geo-tab-btn" id="btnGeoModeAllZones">Todas las zonas</button>
-                  </div>
-                </div>
-                <div id="geoZonesAndPeople" class="geo-detail-content"></div>
               </div>
             </div>
           </div>
@@ -1136,7 +1137,8 @@
   <!-- Contenedor para Notificaciones Toast -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/js/app.js?v=2.4"></script>
+  <script src="/vendor/anime.min.js"></script>
+  <script src="/js/app.js?v=2.5"></script>
 </body>
 
 </html>

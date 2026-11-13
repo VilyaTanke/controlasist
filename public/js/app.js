@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
       overview: null,
       selectedCity: null,
       geoMode: 'city',
+      geoIncludeMissing: true,
       selectedPersonId: null
     }
   };
@@ -192,8 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const kpiTotalAsistencias = document.getElementById('kpiTotalAsistencias');
   const kpiAsistenciasDesglose = document.getElementById('kpiAsistenciasDesglose');
   const kpiDirectorioTotal = document.getElementById('kpiDirectorioTotal');
-  const analyticsChartPointInfo = document.getElementById('analyticsChartPointInfo');
-  const analyticsTimelineChart = document.getElementById('analyticsTimelineChart');
   const analyticsNewPeopleCount = document.getElementById('analyticsNewPeopleCount');
   const analyticsNewPeopleList = document.getElementById('analyticsNewPeopleList');
 
@@ -217,6 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const geoCitiesCountBadge = document.getElementById('geoCitiesCountBadge');
   const geoSummaryPills = document.getElementById('geoSummaryPills');
+  const btnGeoScopeAll = document.getElementById('btnGeoScopeAll');
+  const btnGeoScopeKnown = document.getElementById('btnGeoScopeKnown');
+  const pie3dActiveInfo = document.getElementById('pie3dActiveInfo');
+  const geoPie3dSvg = document.getElementById('geoPie3dSvg');
   const geoCitiesList = document.getElementById('geoCitiesList');
   const geoSelectedCityTitle = document.getElementById('geoSelectedCityTitle');
   const btnGeoModeCity = document.getElementById('btnGeoModeCity');
@@ -1558,7 +1561,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return params.toString();
   }
 
-  async function loadAnalyticsOverview() {
+  function animateKpiNumber(el, targetVal) {
+    if (!el) return;
+    const target = Number(targetVal) || 0;
+    if (typeof anime !== 'function') {
+      el.textContent = target;
+      return;
+    }
+    const counter = { val: 0 };
+    anime({
+      targets: counter,
+      val: target,
+      round: 1,
+      duration: 850,
+      easing: 'easeOutQuad',
+      update: () => { el.textContent = counter.val; }
+    });
+  }
+
+  async function loadAnalyticsOverview(animateFill = true) {
     if (!state.admin.token) return;
     try {
       const res = await fetch(`/api/analytics/overview?${buildAnalyticsOverviewQuery()}`, {
@@ -1572,17 +1593,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error(data.error || 'Error cargando analíticas');
 
       state.analytics.overview = data;
-      renderEntriesAnalytics(data.entries);
-      renderGeographicAnalytics(data.geography);
+      renderGeographicAnalytics(data.geography, animateFill);
+      renderEntriesAnalytics(data.entries, animateFill);
     } catch (err) {
       console.error(err);
       showToast(err.message || 'No se pudieron cargar las analíticas', 'error');
     }
   }
 
-  function renderEntriesAnalytics(entries) {
+  function renderEntriesAnalytics(entries, animateNumbers = false) {
     if (!entries) return;
-    const { period, totals, dailySeries, monthlySeries, newPeopleList } = entries;
+    const { period, totals, newPeopleList } = entries;
 
     if (analyticsDateFrom) analyticsDateFrom.value = period.dateFrom || '';
     if (analyticsDateTo) analyticsDateTo.value = period.dateTo || '';
@@ -1597,83 +1618,23 @@ document.addEventListener('DOMContentLoaded', () => {
       analyticsPeriodRangeBadge.textContent = period.label || '-';
     }
 
-    if (kpiNuevosIngreso) kpiNuevosIngreso.textContent = totals.nuevosPrimerIngreso || 0;
-    if (kpiNuevosVisitantes) kpiNuevosVisitantes.textContent = totals.nuevosVisitantes || 0;
-    if (kpiTotalAsistencias) kpiTotalAsistencias.textContent = totals.totalAsistencias || 0;
+    if (animateNumbers) {
+      animateKpiNumber(kpiNuevosIngreso, totals.nuevosPrimerIngreso || 0);
+      animateKpiNumber(kpiNuevosVisitantes, totals.nuevosVisitantes || 0);
+      animateKpiNumber(kpiTotalAsistencias, totals.totalAsistencias || 0);
+      animateKpiNumber(kpiDirectorioTotal, totals.totalPersonas || 0);
+    } else {
+      if (kpiNuevosIngreso) kpiNuevosIngreso.textContent = totals.nuevosPrimerIngreso || 0;
+      if (kpiNuevosVisitantes) kpiNuevosVisitantes.textContent = totals.nuevosVisitantes || 0;
+      if (kpiTotalAsistencias) kpiTotalAsistencias.textContent = totals.totalAsistencias || 0;
+      if (kpiDirectorioTotal) kpiDirectorioTotal.textContent = totals.totalPersonas || 0;
+    }
+
     if (kpiAsistenciasDesglose) {
       kpiAsistenciasDesglose.textContent = `${totals.asistenciasNuevo || 0} nuevos • ${totals.asistenciasConsolidado || 0} consolidados`;
     }
-    if (kpiDirectorioTotal) kpiDirectorioTotal.textContent = totals.totalPersonas || 0;
 
-    renderTimelineChart(dailySeries || [], monthlySeries || []);
     renderNewPeopleList(newPeopleList || [], period);
-  }
-
-  function renderTimelineChart(dailySeries, monthlySeries) {
-    if (!analyticsTimelineChart) return;
-    analyticsTimelineChart.innerHTML = '';
-
-    const useMonthly = dailySeries.length > 35;
-    const buckets = useMonthly ? monthlySeries : dailySeries;
-
-    if (!buckets || buckets.length === 0) {
-      analyticsTimelineChart.innerHTML = '<div class="chart-empty">No hay asistencias con fecha registrada en este período.</div>';
-      if (analyticsChartPointInfo) {
-        analyticsChartPointInfo.textContent = 'Sin datos de fechas en el período seleccionado.';
-      }
-      return;
-    }
-
-    const maxVal = Math.max(
-      1,
-      ...buckets.map(b => Math.max(b.nuevosIngresos || 0, b.totalAsistencias || 0))
-    );
-
-    if (analyticsChartPointInfo) {
-      analyticsChartPointInfo.textContent = useMonthly
-        ? `Vista agrupada por mes (${buckets.length} meses). Toca una columna para ver el detalle.`
-        : `Vista diaria (${buckets.length} ${buckets.length === 1 ? 'día' : 'días'}). Toca una columna para ver el detalle.`;
-    }
-
-    buckets.forEach((b) => {
-      const col = document.createElement('div');
-      col.className = 'chart-col';
-
-      const newCount = b.nuevosIngresos || 0;
-      const totCount = b.totalAsistencias || 0;
-      const hNew = newCount > 0 ? Math.max(8, Math.round((newCount / maxVal) * 105)) : 3;
-      const hTot = totCount > 0 ? Math.max(8, Math.round((totCount / maxVal) * 105)) : 3;
-
-      const label = useMonthly
-        ? formatMonthLabel(b.month)
-        : b.date.slice(8, 10) + '/' + b.date.slice(5, 7);
-
-      const fullLabel = useMonthly ? formatMonthLabel(b.month) : formatShortDate(b.date);
-
-      col.innerHTML = `
-        <div class="chart-bars-pair">
-          <div class="chart-bar chart-bar-green" style="height: ${hNew}px;">
-            ${newCount > 0 ? `<span class="chart-bar-num">${newCount}</span>` : ''}
-          </div>
-          <div class="chart-bar chart-bar-blue" style="height: ${hTot}px;">
-            ${totCount > 0 ? `<span class="chart-bar-num">${totCount}</span>` : ''}
-          </div>
-        </div>
-        <div class="chart-col-label">${escapeHtml(label)}</div>
-      `;
-
-      const showDetail = () => {
-        analyticsTimelineChart.querySelectorAll('.chart-col.active').forEach(el => el.classList.remove('active'));
-        col.classList.add('active');
-        if (analyticsChartPointInfo) {
-          analyticsChartPointInfo.textContent = `${fullLabel}: ${newCount} nuevos ingresos (1ª vez) • ${totCount} asistencias totales (${b.asistenciasNuevo || 0} nuevos, ${b.asistenciasConsolidado || 0} consolidados)`;
-        }
-      };
-
-      col.addEventListener('click', showDetail);
-      col.addEventListener('mouseenter', showDetail);
-      analyticsTimelineChart.appendChild(col);
-    });
   }
 
   function renderNewPeopleList(list, period) {
@@ -1731,7 +1692,7 @@ document.addEventListener('DOMContentLoaded', () => {
         days: parseInt(presetVal, 10) || 30
       };
     }
-    loadAnalyticsOverview();
+    loadAnalyticsOverview(false);
   }
 
   // Person Selector & Detail
@@ -1936,14 +1897,264 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Geographic Distribution
-  function renderGeographicAnalytics(geography) {
+  // ========================================================
+  // DISTRIBUCIÓN GEOGRÁFICA & ÚNICO GRÁFICO DE TORTA 3D (ANIME.JS)
+  // ========================================================
+
+  const GEO_SLICE_PALETTES = [
+    { top: '#3b82f6', light: '#60a5fa', side: '#1d4ed8', cut: '#1e3a8a' },
+    { top: '#8b5cf6', light: '#a78bfa', side: '#6d28d9', cut: '#4c1d95' },
+    { top: '#f59e0b', light: '#fbbf24', side: '#d97706', cut: '#92400e' },
+    { top: '#f43f5e', light: '#fb7185', side: '#e11d48', cut: '#9f1239' },
+    { top: '#14b8a6', light: '#2dd4bf', side: '#0f766e', cut: '#115e59' },
+    { top: '#f97316', light: '#fb923c', side: '#c2410c', cut: '#7c2d12' }
+  ];
+  const LOCAL_PALETTE = { top: '#10b981', light: '#34d399', side: '#047857', cut: '#065f46' };
+  const MISSING_PALETTE = { top: '#94a3b8', light: '#cbd5e1', side: '#64748b', cut: '#475569' };
+
+  const pieAnimState = {
+    progress: 1,
+    pop: 1,
+    slices: []
+  };
+
+  function getCitySlicePalette(cityObj, colorIndex) {
+    if (!cityObj.hasAddress) return MISSING_PALETTE;
+    if (cityObj.isLocalCity) return LOCAL_PALETTE;
+    return GEO_SLICE_PALETTES[colorIndex % GEO_SLICE_PALETTES.length];
+  }
+
+  function buildPie3DSlices(geography) {
+    const rawCities = (geography && geography.cities) ? geography.cities : [];
+    const visibleCities = state.analytics.geoIncludeMissing
+      ? rawCities
+      : rawCities.filter(c => c.hasAddress);
+
+    const total = visibleCities.reduce((acc, c) => acc + c.count, 0);
+    let currentAngle = -Math.PI / 2;
+    let otherIdx = 0;
+
+    return visibleCities.map((c, idx) => {
+      const palette = getCitySlicePalette(c, c.hasAddress && !c.isLocalCity ? otherIdx++ : idx);
+      const fraction = total > 0 ? c.count / total : 0;
+      const sweep = fraction * Math.PI * 2;
+      const slice = {
+        ...c,
+        palette,
+        pctScope: total > 0 ? Math.round((c.count / total) * 1000) / 10 : 0,
+        startAngle: currentAngle,
+        endAngle: currentAngle + sweep
+      };
+      currentAngle += sweep;
+      return slice;
+    });
+  }
+
+  function updatePie3dInfoBanner(citySlice) {
+    if (!pie3dActiveInfo) return;
+    if (!citySlice) {
+      pie3dActiveInfo.textContent = 'Sin datos geográficos disponibles.';
+      return;
+    }
+    pie3dActiveInfo.textContent = `${citySlice.city}: ${citySlice.count} ${citySlice.count === 1 ? 'persona' : 'personas'} (${citySlice.pctScope}%)`;
+  }
+
+  function selectGeoCity(cityName, animatePop = true) {
+    state.analytics.selectedCity = cityName;
+    state.analytics.geoMode = 'city';
+
+    if (geoCitiesList) {
+      geoCitiesList.querySelectorAll('.geo-city-row').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.city === cityName);
+      });
+    }
+
+    const activeSlice = pieAnimState.slices.find(s => s.city === cityName);
+    if (activeSlice) updatePie3dInfoBanner(activeSlice);
+
+    if (state.analytics.overview) {
+      renderGeoDetailPanel(state.analytics.overview.geography);
+    }
+
+    if (animatePop && typeof anime === 'function') {
+      anime.remove(pieAnimState);
+      pieAnimState.pop = 0;
+      anime({
+        targets: pieAnimState,
+        pop: 1,
+        duration: 360,
+        easing: 'easeOutBack',
+        update: () => drawGeoPie3DSvg()
+      });
+    } else {
+      pieAnimState.pop = 1;
+      drawGeoPie3DSvg();
+    }
+  }
+
+  function drawGeoPie3DSvg() {
+    if (!geoPie3dSvg) return;
+    const slices = pieAnimState.slices;
+    const progress = Math.max(0, Math.min(1, pieAnimState.progress));
+
+    if (!slices || slices.length === 0) {
+      geoPie3dSvg.innerHTML = '<text x="230" y="155" text-anchor="middle" fill="#64748b" font-size="14" font-weight="600">No hay datos geográficos para mostrar</text>';
+      return;
+    }
+
+    const CX = 230;
+    const CY = 136;
+    const RX = 158;
+    const RY = 90;
+    const DEPTH = 38;
+    const POP_DIST = 11;
+    const maxAngle = -Math.PI / 2 + Math.max(0.002, progress) * Math.PI * 2;
+
+    const pt = (ox, oy, rad) => ({
+      x: ox + RX * Math.cos(rad),
+      y: oy + RY * Math.sin(rad)
+    });
+
+    const visibleSlices = [];
+    for (let i = 0; i < slices.length; i++) {
+      const s = slices[i];
+      const a1 = s.startAngle;
+      const a2 = Math.min(s.endAngle, maxAngle);
+      if (a2 - a1 <= 0.002) continue;
+
+      const mid = (a1 + a2) / 2;
+      const isSelected = s.city === state.analytics.selectedCity;
+      const popFactor = isSelected && progress > 0.25 ? pieAnimState.pop : 0;
+      const ox = CX + Math.cos(mid) * POP_DIST * popFactor;
+      const oy = CY + Math.sin(mid) * (POP_DIST * (RY / RX)) * popFactor;
+      const isFrontier = progress < 0.998 && a2 >= maxAngle - 0.001;
+
+      visibleSlices.push({
+        ...s,
+        a1,
+        a2,
+        sweep: a2 - a1,
+        mid,
+        ox,
+        oy,
+        isSelected,
+        popFactor,
+        isFrontier,
+        gradId: `pie3dGrad_${i}`
+      });
+    }
+
+    // Build SVG <defs> gradients + drop shadow
+    const defsParts = [
+      `<radialGradient id="pie3dFloorShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#0f172a" stop-opacity="0.24" />
+        <stop offset="72%" stop-color="#0f172a" stop-opacity="0.09" />
+        <stop offset="100%" stop-color="#0f172a" stop-opacity="0" />
+      </radialGradient>`
+    ];
+
+    visibleSlices.forEach(vs => {
+      defsParts.push(`
+        <linearGradient id="${vs.gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${vs.palette.light}" />
+          <stop offset="100%" stop-color="${vs.palette.top}" />
+        </linearGradient>
+      `);
+    });
+
+    const shadowLayer = `<ellipse cx="${CX}" cy="${CY + DEPTH + 10}" rx="${RX + 10}" ry="${RY + 6}" fill="url(#pie3dFloorShadow)" />`;
+
+    // Radial inner cut walls (visible when popped out or at active sweep frontier)
+    const cutWalls = [];
+    const buildRadialWall = (ox, oy, rad, color) => {
+      const pEdge = pt(ox, oy, rad);
+      return `<path d="M ${ox.toFixed(2)} ${oy.toFixed(2)} L ${pEdge.x.toFixed(2)} ${pEdge.y.toFixed(2)} L ${pEdge.x.toFixed(2)} ${(pEdge.y + DEPTH).toFixed(2)} L ${ox.toFixed(2)} ${(oy + DEPTH).toFixed(2)} Z" fill="${color}" />`;
+    };
+
+    visibleSlices.forEach(vs => {
+      if (vs.sweep >= Math.PI * 2 - 0.002) return;
+      if ((vs.isSelected && vs.popFactor > 0.04) || vs.isFrontier) {
+        if (Math.cos(vs.a2) > 0.01) {
+          cutWalls.push(buildRadialWall(vs.ox, vs.oy, vs.a2, vs.palette.cut));
+        }
+      }
+      if (vs.isSelected && vs.popFactor > 0.04 && Math.cos(vs.a1) < -0.01) {
+        cutWalls.push(buildRadialWall(vs.ox, vs.oy, vs.a1, vs.palette.cut));
+      }
+    });
+
+    // Outer curved front skirt walls (angles intersecting [0, PI])
+    const curvedWalls = [];
+    visibleSlices.forEach(vs => {
+      const f1 = Math.max(vs.a1, 0);
+      const f2 = Math.min(vs.a2, Math.PI);
+      if (f2 - f1 <= 0.002) return;
+
+      const p1 = pt(vs.ox, vs.oy, f1);
+      const p2 = pt(vs.ox, vs.oy, f2);
+      const largeArc = (f2 - f1) > Math.PI ? 1 : 0;
+      const d = `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${RX} ${RY} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} L ${p2.x.toFixed(2)} ${(p2.y + DEPTH).toFixed(2)} A ${RX} ${RY} 0 ${largeArc} 0 ${p1.x.toFixed(2)} ${(p1.y + DEPTH).toFixed(2)} Z`;
+
+      curvedWalls.push({
+        depthSort: Math.sin((f1 + f2) / 2) + (vs.isSelected ? 0.08 * vs.popFactor : 0),
+        html: `<path class="pie3d-slice-group" data-city="${escapeHtml(vs.city)}" d="${d}" fill="${vs.palette.side}" stroke="rgba(255,255,255,0.22)" stroke-width="0.7" />`
+      });
+    });
+    curvedWalls.sort((a, b) => a.depthSort - b.depthSort);
+
+    // Top wedge faces (selected slice last so popped bevel stands out cleanly)
+    const topFaces = [...visibleSlices].sort((a, b) => {
+      if (a.isSelected !== b.isSelected) return a.isSelected ? 1 : -1;
+      return Math.sin(a.mid) - Math.sin(b.mid);
+    });
+
+    const topHtml = topFaces.map(vs => {
+      let sectorEl;
+      if (vs.sweep >= Math.PI * 2 - 0.002) {
+        sectorEl = `<ellipse cx="${vs.ox.toFixed(2)}" cy="${vs.oy.toFixed(2)}" rx="${RX}" ry="${RY}" fill="url(#${vs.gradId})" stroke="#ffffff" stroke-width="${vs.isSelected ? '2.4' : '1.4'}" />`;
+      } else {
+        const p1 = pt(vs.ox, vs.oy, vs.a1);
+        const p2 = pt(vs.ox, vs.oy, vs.a2);
+        const largeArc = vs.sweep > Math.PI ? 1 : 0;
+        const d = `M ${vs.ox.toFixed(2)} ${vs.oy.toFixed(2)} L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${RX} ${RY} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} Z`;
+        sectorEl = `<path d="${d}" fill="url(#${vs.gradId})" stroke="#ffffff" stroke-width="${vs.isSelected ? '2.4' : '1.4'}" stroke-linejoin="round" />`;
+      }
+
+      let labelEl = '';
+      if (vs.sweep >= 0.28) {
+        const lx = vs.ox + RX * 0.62 * Math.cos(vs.mid);
+        const ly = vs.oy + RY * 0.62 * Math.sin(vs.mid);
+        labelEl = `<text class="pie3d-label" x="${lx.toFixed(2)}" y="${ly.toFixed(2)}">${Math.round(vs.pctScope)}%</text>`;
+      }
+
+      return `<g class="pie3d-slice-group" data-city="${escapeHtml(vs.city)}">${sectorEl}${labelEl}</g>`;
+    }).join('');
+
+    geoPie3dSvg.innerHTML = `<defs>${defsParts.join('')}</defs>${shadowLayer}${cutWalls.join('')}${curvedWalls.map(w => w.html).join('')}${topHtml}`;
+
+    geoPie3dSvg.querySelectorAll('.pie3d-slice-group').forEach(el => {
+      el.addEventListener('click', () => {
+        const city = el.getAttribute('data-city');
+        if (city) selectGeoCity(city, true);
+      });
+      el.addEventListener('mouseenter', () => {
+        const city = el.getAttribute('data-city');
+        const hovered = pieAnimState.slices.find(s => s.city === city);
+        if (hovered) updatePie3dInfoBanner(hovered);
+      });
+    });
+  }
+
+  function renderGeographicAnalytics(geography, animateFill = true) {
     if (!geography) return;
-    const { summary, cities } = geography;
+    const { summary } = geography;
 
     if (geoCitiesCountBadge) {
       geoCitiesCountBadge.textContent = `${summary.totalCiudades} ${summary.totalCiudades === 1 ? 'Ciudad' : 'Ciudades'}`;
     }
+
+    if (btnGeoScopeAll) btnGeoScopeAll.classList.toggle('active', state.analytics.geoIncludeMissing);
+    if (btnGeoScopeKnown) btnGeoScopeKnown.classList.toggle('active', !state.analytics.geoIncludeMissing);
 
     if (geoSummaryPills) {
       const pctLocal = summary.totalPersonas > 0 ? Math.round((summary.enSotoDelReal / summary.totalPersonas) * 100) : 0;
@@ -1956,47 +2167,70 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    if (!state.analytics.selectedCity || !cities.some(c => c.city === state.analytics.selectedCity)) {
-      state.analytics.selectedCity = cities.length > 0 ? cities[0].city : null;
+    const slices = buildPie3DSlices(geography);
+    pieAnimState.slices = slices;
+
+    if (!state.analytics.selectedCity || !slices.some(c => c.city === state.analytics.selectedCity)) {
+      state.analytics.selectedCity = slices.length > 0 ? slices[0].city : null;
     }
+
+    const activeSlice = slices.find(s => s.city === state.analytics.selectedCity) || slices[0] || null;
+    updatePie3dInfoBanner(activeSlice);
 
     if (geoCitiesList) {
       geoCitiesList.innerHTML = '';
-      if (cities.length === 0) {
+      if (slices.length === 0) {
         geoCitiesList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No hay participantes registrados.</div>';
       } else {
-        const maxCount = Math.max(1, ...cities.map(c => c.count));
-        cities.forEach((c) => {
+        slices.forEach((c) => {
           const btn = document.createElement('button');
           btn.type = 'button';
+          btn.dataset.city = c.city;
           btn.className = `geo-city-row ${state.analytics.selectedCity === c.city ? 'active' : ''}`;
-          const barWidth = Math.max(6, Math.round((c.count / maxCount) * 100));
-          const fillClass = !c.hasAddress ? 'is-missing' : (c.isLocalCity ? 'is-local' : '');
-          const tag = !c.hasAddress ? '' : (c.isLocalCity ? '<span class="today-pill pill-nuevo" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;">Sede Local</span>' : '<span class="today-pill pill-consolidado" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;">Otra ciudad</span>');
-
           btn.innerHTML = `
-            <div class="geo-city-row-top">
-              <div class="geo-city-name">
-                <span>${escapeHtml(c.city)}</span>
-                ${tag}
-              </div>
-              <div class="geo-city-count">${c.count} (${c.percent}%)</div>
+            <div class="geo-city-name">
+              <span class="geo-legend-swatch" style="background: ${c.palette.top};"></span>
+              <span>${escapeHtml(c.city)}</span>
             </div>
-            <div class="geo-progress-track">
-              <div class="geo-progress-fill ${fillClass}" style="width: ${barWidth}%;"></div>
-            </div>
+            <div class="geo-city-count">${c.count} (${c.pctScope}%)</div>
           `;
-          btn.addEventListener('click', () => {
-            state.analytics.selectedCity = c.city;
-            state.analytics.geoMode = 'city';
-            renderGeographicAnalytics(geography);
-          });
+          btn.addEventListener('click', () => selectGeoCity(c.city, true));
           geoCitiesList.appendChild(btn);
         });
       }
     }
 
     renderGeoDetailPanel(geography);
+
+    if (animateFill && typeof anime === 'function') {
+      anime.remove(pieAnimState);
+      pieAnimState.progress = 0;
+      pieAnimState.pop = 1;
+      drawGeoPie3DSvg();
+
+      anime({
+        targets: pieAnimState,
+        progress: [0, 1],
+        duration: 1400,
+        easing: 'easeOutCubic',
+        update: () => drawGeoPie3DSvg()
+      });
+
+      if (geoCitiesList) {
+        anime({
+          targets: geoCitiesList.querySelectorAll('.geo-city-row'),
+          opacity: [0, 1],
+          translateY: [10, 0],
+          delay: anime.stagger(70),
+          duration: 450,
+          easing: 'easeOutQuad'
+        });
+      }
+    } else {
+      pieAnimState.progress = 1;
+      pieAnimState.pop = 1;
+      drawGeoPie3DSvg();
+    }
   }
 
   function renderGeoDetailPanel(geography) {
@@ -2183,6 +2417,22 @@ document.addEventListener('DOMContentLoaded', () => {
     btnGeoModeAllZones.addEventListener('click', () => {
       state.analytics.geoMode = 'allZones';
       if (state.analytics.overview) renderGeoDetailPanel(state.analytics.overview.geography);
+    });
+  }
+
+  if (btnGeoScopeAll) {
+    btnGeoScopeAll.addEventListener('click', () => {
+      if (state.analytics.geoIncludeMissing) return;
+      state.analytics.geoIncludeMissing = true;
+      if (state.analytics.overview) renderGeographicAnalytics(state.analytics.overview.geography, true);
+    });
+  }
+
+  if (btnGeoScopeKnown) {
+    btnGeoScopeKnown.addEventListener('click', () => {
+      if (!state.analytics.geoIncludeMissing) return;
+      state.analytics.geoIncludeMissing = false;
+      if (state.analytics.overview) renderGeographicAnalytics(state.analytics.overview.geography, true);
     });
   }
 

@@ -20,6 +20,11 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// Serve Anime.js locally for smooth offline-capable 3D chart animations
+app.get('/vendor/anime.min.js', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'node_modules', 'animejs', 'lib', 'anime.min.js'));
+});
+
 // Admin In-Memory Session Storage
 const adminSessions = new Map(); // token -> { user, createdAt }
 

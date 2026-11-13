@@ -19,6 +19,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "animejs": "^3.2.2",
     "better-sqlite3": "^13.1.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
