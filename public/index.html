@@ -34,11 +34,13 @@
               <span class="live-pulse"></span>
               <span>Sistema Activo</span>
             </div>
-            <button type="button" class="btn-admin-pill btn-analytics-pill" id="btnOpenAnalyticsPage" title="Página de Analíticas (Solo Admin)">
+            <button type="button" class="btn-admin-pill btn-analytics-pill" id="btnOpenAnalyticsPage"
+              title="Página de Analíticas (Solo Admin)">
               <i class="fa-sharp-duotone fa-solid fa-chart-line"></i>
               <span>Analíticas</span>
             </button>
-            <button type="button" class="btn-admin-pill" id="btnOpenAdminPanel" title="Panel de Gestión de Administradores">
+            <button type="button" class="btn-admin-pill" id="btnOpenAdminPanel"
+              title="Panel de Gestión de Administradores">
               <i class="fa-sharp-duotone fa-solid fa-user-shield"></i>
               <span>Admin</span>
             </button>
@@ -82,163 +84,163 @@
     <!-- VISTA PRINCIPAL DE CONTROL -->
     <div id="homeControlView">
 
-    <!-- Resumen rápido del culto actual -->
-    <div class="today-summary-banner">
-      <div class="today-summary-content">
-        <span class="today-title"><i class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Culto de Hoy:</span>
-        <span class="today-pill pill-total"><strong id="statHoy">0</strong> Asistencias</span>
-        <span class="today-pill pill-nuevo"><strong id="statNuevos">0</strong> Nuevos</span>
-        <span class="today-pill pill-consolidado"><strong id="statConsolidados">0</strong> Consolidados</span>
+      <!-- Resumen rápido del culto actual -->
+      <div class="today-summary-banner">
+        <div class="today-summary-content">
+          <span class="today-title"><i class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Culto de Hoy:</span>
+          <span class="today-pill pill-total"><strong id="statHoy">0</strong> Asistencias</span>
+          <span class="today-pill pill-nuevo"><strong id="statNuevos">0</strong> Nuevos</span>
+          <span class="today-pill pill-consolidado"><strong id="statConsolidados">0</strong> Consolidados</span>
+        </div>
+        <div class="today-total-db">
+          Total en Directorio: <strong id="statTotal">0</strong>
+        </div>
       </div>
-      <div class="today-total-db">
-        Total en Directorio: <strong id="statTotal">0</strong>
-      </div>
-    </div>
 
-    <!-- SECCIÓN PRINCIPAL HERO: LOS DOS BOTONES (MOBILE FIRST) -->
-    <section class="main-hero-actions">
-      <!-- Botón 1: Registrar Asistencia -->
-      <button type="button" class="hero-action-btn action-asistencia" id="btnOpenAsistencia">
-        <div class="hero-btn-icon-wrapper">
-          <span class="hero-btn-icon"><i class="fa-sharp-duotone fa-solid fa-clipboard-user"></i></span>
-        </div>
-        <div class="hero-btn-content">
-          <div class="hero-btn-badge">Acción Rápida</div>
-          <h2 class="hero-btn-title">Registrar Asistencia</h2>
-          <p class="hero-btn-desc">Buscar por nombre a persona registrada y marcar su asistencia de hoy</p>
-        </div>
-        <div class="hero-btn-arrow"><i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></div>
-      </button>
+      <!-- SECCIÓN PRINCIPAL HERO: LOS DOS BOTONES (MOBILE FIRST) -->
+      <section class="main-hero-actions">
+        <!-- Botón 1: Registrar Asistencia -->
+        <button type="button" class="hero-action-btn action-asistencia" id="btnOpenAsistencia">
+          <div class="hero-btn-icon-wrapper">
+            <span class="hero-btn-icon"><i class="fa-sharp-duotone fa-solid fa-clipboard-user"></i></span>
+          </div>
+          <div class="hero-btn-content">
+            <div class="hero-btn-badge">Acción Rápida</div>
+            <h2 class="hero-btn-title">Registrar Asistencia</h2>
+            <p class="hero-btn-desc">Buscar por nombre a persona registrada y marcar su asistencia de hoy</p>
+          </div>
+          <div class="hero-btn-arrow"><i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></div>
+        </button>
 
-      <!-- Botón 2: Registrar Nuevo -->
-      <button type="button" class="hero-action-btn action-nuevo" id="btnOpenNuevo">
-        <div class="hero-btn-icon-wrapper icon-green">
-          <span class="hero-btn-icon"><i class="fa-sharp-duotone fa-solid fa-user-plus"></i></span>
-        </div>
-        <div class="hero-btn-content">
-          <div class="hero-btn-badge badge-green">Nueva Persona</div>
-          <h2 class="hero-btn-title">Registrar Nuevo</h2>
-          <p class="hero-btn-desc">Llenar formulario completo para registrar a un nuevo asistente</p>
-        </div>
-        <div class="hero-btn-arrow"><i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></div>
-      </button>
-    </section>
+        <!-- Botón 2: Registrar Nuevo -->
+        <button type="button" class="hero-action-btn action-nuevo" id="btnOpenNuevo">
+          <div class="hero-btn-icon-wrapper icon-green">
+            <span class="hero-btn-icon"><i class="fa-sharp-duotone fa-solid fa-user-plus"></i></span>
+          </div>
+          <div class="hero-btn-content">
+            <div class="hero-btn-badge badge-green">Nueva Persona</div>
+            <h2 class="hero-btn-title">Registrar Nuevo</h2>
+            <p class="hero-btn-desc">Llenar formulario completo para registrar a un nuevo asistente</p>
+          </div>
+          <div class="hero-btn-arrow"><i class="fa-sharp-duotone fa-solid fa-arrow-right"></i></div>
+        </button>
+      </section>
 
-    <!-- SECCIÓN: REGISTROS Y ASISTENCIAS -->
-    <section class="card table-card">
-      <div class="card-header">
-        <div class="card-title-group">
-          <h2><i class="fa-sharp-duotone fa-solid fa-clipboard-list"></i> Listado de Asistencias</h2>
-          <p id="totalCountLabel">Cargando...</p>
-        </div>
-
-        <!-- Acciones de Exportación e Importación -->
-        <div class="export-actions">
-          <!-- Dropdown Exportar Excel -->
-          <div class="dropdown" id="exportDropdown">
-            <button type="button" class="btn btn-success" id="exportBtn">
-              <i class="fa-sharp-duotone fa-solid fa-file-excel"></i>
-              <span>Exportar</span>
-              <i class="fa-sharp-duotone fa-solid fa-chevron-down" style="font-size: 0.75rem;"></i>
-            </button>
-
-            <div class="dropdown-menu">
-              <button type="button" class="dropdown-item" id="btnExportOriginal">
-                <i class="fa-sharp-duotone fa-solid fa-file-lines" style="font-size: 1.25rem;"></i>
-                <div>
-                  <div class="dropdown-item-title">Formato Plantilla Original</div>
-                  <div class="dropdown-item-desc">Nombres, Teléfono, Cumpleaños, Nuevo, Consolidado</div>
-                </div>
-              </button>
-
-              <button type="button" class="dropdown-item" id="btnExportFull">
-                <i class="fa-sharp-duotone fa-solid fa-table-list" style="font-size: 1.25rem;"></i>
-                <div>
-                  <div class="dropdown-item-title">Formato Completo</div>
-                  <div class="dropdown-item-desc">Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, Notas</div>
-                </div>
-              </button>
-
-              <div class="dropdown-divider"></div>
-
-              <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download
-                title="Descargar archivo .db de SQLite">
-                <i class="fa-sharp-duotone fa-solid fa-database" style="font-size: 1.25rem;"></i>
-                <div>
-                  <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
-                  <div class="dropdown-item-desc">Descarga íntegra de la base de datos SQLite</div>
-                </div>
-              </a>
-            </div>
+      <!-- SECCIÓN: REGISTROS Y ASISTENCIAS -->
+      <section class="card table-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2><i class="fa-sharp-duotone fa-solid fa-clipboard-list"></i> Listado de Asistencias</h2>
+            <p id="totalCountLabel">Cargando...</p>
           </div>
 
-          <!-- Botón Importar Excel -->
-          <button type="button" class="btn btn-outline" id="btnOpenImport" title="Importar archivo Excel existente">
-            <i class="fa-sharp-duotone fa-solid fa-file-import"></i>
-            <span class="hide-mobile">Importar</span>
-          </button>
-        </div>
-      </div>
+          <!-- Acciones de Exportación e Importación -->
+          <div class="export-actions">
+            <!-- Dropdown Exportar Excel -->
+            <div class="dropdown" id="exportDropdown">
+              <button type="button" class="btn btn-success" id="exportBtn">
+                <i class="fa-sharp-duotone fa-solid fa-file-excel"></i>
+                <span>Exportar</span>
+                <i class="fa-sharp-duotone fa-solid fa-chevron-down" style="font-size: 0.75rem;"></i>
+              </button>
 
-      <div class="card-body">
+              <div class="dropdown-menu">
+                <button type="button" class="dropdown-item" id="btnExportOriginal">
+                  <i class="fa-sharp-duotone fa-solid fa-file-lines" style="font-size: 1.25rem;"></i>
+                  <div>
+                    <div class="dropdown-item-title">Formato Plantilla Original</div>
+                    <div class="dropdown-item-desc">Nombres, Teléfono, Cumpleaños, Nuevo, Consolidado</div>
+                  </div>
+                </button>
 
-        <!-- Barra de Búsqueda y Filtros -->
-        <div class="table-toolbar">
-          <div class="toolbar-row">
-            <div class="search-container">
-              <div class="input-wrapper">
-                <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" id="searchInput" class="form-control"
-                  placeholder="Buscar en asistencias por nombre, teléfono..." autocomplete="off">
-                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda"
-                  style="display: none;"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+                <button type="button" class="dropdown-item" id="btnExportFull">
+                  <i class="fa-sharp-duotone fa-solid fa-table-list" style="font-size: 1.25rem;"></i>
+                  <div>
+                    <div class="dropdown-item-title">Formato Completo</div>
+                    <div class="dropdown-item-desc">Fecha y Hora, Nombres, Teléfono, Dirección, Cumpleaños, Notas</div>
+                  </div>
+                </button>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="/api/backup" class="dropdown-item" id="btnBackupDb" download
+                  title="Descargar archivo .db de SQLite">
+                  <i class="fa-sharp-duotone fa-solid fa-database" style="font-size: 1.25rem;"></i>
+                  <div>
+                    <div class="dropdown-item-title">Copia de Seguridad (.db)</div>
+                    <div class="dropdown-item-desc">Descarga íntegra de la base de datos SQLite</div>
+                  </div>
+                </a>
               </div>
             </div>
 
-            <!-- Filtros por tipo y fecha -->
-            <div class="filter-pills">
-              <button type="button" class="filter-pill active" data-filter="hoy"><i
-                  class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Hoy</button>
-              <button type="button" class="filter-pill" data-filter="todos"><i
-                  class="fa-sharp-duotone fa-solid fa-users"></i> Todos</button>
-              <button type="button" class="filter-pill" data-filter="nuevo"><i
-                  class="fa-sharp-duotone fa-solid fa-seedling"></i> Nuevos</button>
-              <button type="button" class="filter-pill" data-filter="consolidado"><i
-                  class="fa-sharp-duotone fa-solid fa-user-check"></i> Consolidados</button>
+            <!-- Botón Importar Excel -->
+            <button type="button" class="btn btn-outline" id="btnOpenImport" title="Importar archivo Excel existente">
+              <i class="fa-sharp-duotone fa-solid fa-file-import"></i>
+              <span class="hide-mobile">Importar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          <!-- Barra de Búsqueda y Filtros -->
+          <div class="table-toolbar">
+            <div class="toolbar-row">
+              <div class="search-container">
+                <div class="input-wrapper">
+                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
+                  <input type="text" id="searchInput" class="form-control"
+                    placeholder="Buscar en asistencias por nombre, teléfono..." autocomplete="off">
+                  <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Limpiar búsqueda"
+                    style="display: none;"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- Filtros por tipo y fecha -->
+              <div class="filter-pills">
+                <button type="button" class="filter-pill active" data-filter="hoy"><i
+                    class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Hoy</button>
+                <button type="button" class="filter-pill" data-filter="todos"><i
+                    class="fa-sharp-duotone fa-solid fa-users"></i> Todos</button>
+                <button type="button" class="filter-pill" data-filter="nuevo"><i
+                    class="fa-sharp-duotone fa-solid fa-seedling"></i> Nuevos</button>
+                <button type="button" class="filter-pill" data-filter="consolidado"><i
+                    class="fa-sharp-duotone fa-solid fa-user-check"></i> Consolidados</button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Tabla con los datos -->
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="text-align: center; width: 40px;">#</th>
-                <th>Nombres</th>
-                <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Cumpleaños</th>
-                <th>Estado</th>
-                <th>Fecha y Hora</th>
-                <th style="text-align: right;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-              <!-- Se llena dinámicamente con JavaScript -->
-            </tbody>
-          </table>
+          <!-- Tabla con los datos -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="text-align: center; width: 40px;">#</th>
+                  <th>Nombres</th>
+                  <th>Teléfono</th>
+                  <th>Dirección</th>
+                  <th>Cumpleaños</th>
+                  <th>Estado</th>
+                  <th>Fecha y Hora</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- Se llena dinámicamente con JavaScript -->
+              </tbody>
+            </table>
 
-          <!-- Estado Vacío -->
-          <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-icon"><i class="fa-sharp-duotone fa-solid fa-folder-open"></i></div>
-            <h3>No se encontraron asistencias</h3>
-            <p>Usa los botones superiores para registrar asistencia o crear un nuevo asistente.</p>
+            <!-- Estado Vacío -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+              <div class="empty-icon"><i class="fa-sharp-duotone fa-solid fa-folder-open"></i></div>
+              <h3>No se encontraron asistencias</h3>
+              <p>Usa los botones superiores para registrar asistencia o crear un nuevo asistente.</p>
+            </div>
           </div>
-        </div>
 
-      </div>
-    </section>
+        </div>
+      </section>
 
     </div><!-- /#homeControlView -->
 
@@ -283,7 +285,8 @@
               <i class="fa-sharp-duotone fa-solid fa-chart-line"></i>
             </div>
             <h4>Analíticas — Acceso Exclusivo Admin</h4>
-            <p>Inicia sesión con un usuario Administrador para consultar ingresos de nuevas personas, historial individual y distribución geográfica.</p>
+            <p>Inicia sesión con un usuario Administrador para consultar ingresos de nuevas personas, historial
+              individual y distribución geográfica.</p>
           </div>
 
           <form id="analyticsLoginForm" class="analytics-login-form">
@@ -291,7 +294,8 @@
               <label class="form-label" for="analyticsLoginUser">Usuario Admin <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                <input type="text" id="analyticsLoginUser" class="form-control" placeholder="Ej: Pastora" value="Pastora" required autocomplete="username">
+                <input type="text" id="analyticsLoginUser" class="form-control" placeholder="Ej: Pastora"
+                  value="Pastora" required autocomplete="username">
               </div>
             </div>
 
@@ -299,7 +303,8 @@
               <label class="form-label" for="analyticsLoginPass">Contraseña <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                <input type="password" id="analyticsLoginPass" class="form-control" placeholder="Introduce contraseña" required autocomplete="current-password">
+                <input type="password" id="analyticsLoginPass" class="form-control" placeholder="Introduce contraseña"
+                  required autocomplete="current-password">
               </div>
             </div>
 
@@ -347,7 +352,8 @@
                 <div class="pie3d-stage">
                   <div id="pie3dActiveInfo" class="pie3d-active-info">Cargando gráfico 3D...</div>
                   <div class="pie3d-svg-box">
-                    <svg id="geoPie3dSvg" viewBox="0 0 460 310" role="img" aria-label="Gráfico de torta 3D de distribución geográfica"></svg>
+                    <svg id="geoPie3dSvg" viewBox="0 0 460 310" role="img"
+                      aria-label="Gráfico de torta 3D de distribución geográfica"></svg>
                   </div>
                 </div>
 
@@ -357,7 +363,8 @@
               <!-- Columna derecha: Partes de la ciudad / Zonas y Participantes -->
               <div class="geo-panel">
                 <div class="geo-panel-header">
-                  <h4 id="geoSelectedCityTitle"><i class="fa-sharp-duotone fa-solid fa-road"></i> Zonas / Calles y Participantes</h4>
+                  <h4 id="geoSelectedCityTitle"><i class="fa-sharp-duotone fa-solid fa-road"></i> Zonas / Calles y
+                    Participantes</h4>
                   <div class="geo-mode-tabs">
                     <button type="button" class="geo-tab-btn active" id="btnGeoModeCity">Ciudad actual</button>
                     <button type="button" class="geo-tab-btn" id="btnGeoModeAllZones">Todas las zonas</button>
@@ -369,7 +376,82 @@
           </div>
         </article>
 
-        <!-- 2. INGRESOS DE PERSONAS NUEVAS POR FECHA / RANGO -->
+        <!-- 2. CONSULTA DE PERSONA: ÚLTIMA VISITA Y VECES QUE HA VENIDO -->
+        <article class="card analytics-card" id="analyticsPersonSection">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3><i class="fa-sharp-duotone fa-solid fa-user-clock"></i> Consulta por Participante</h3>
+              <p>Selecciona a una persona para ver su última visita y cuántas veces ha asistido</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" for="analyticsPersonSearch">Seleccionar o Buscar Participante</label>
+              <div class="searchable-dropdown-wrapper">
+                <div class="input-wrapper">
+                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
+                  <input type="text" id="analyticsPersonSearch" class="form-control"
+                    placeholder="Escribe un nombre, teléfono o localidad..." autocomplete="off">
+                  <button type="button" id="analyticsPersonClearBtn" class="clear-search-btn" style="display: none;"
+                    title="Limpiar búsqueda"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="dropdown-results-container" id="analyticsPersonDropdown" style="display: none;"></div>
+              </div>
+            </div>
+
+            <div id="analyticsPersonEmptyHint" class="analytics-empty-hint">
+              <i class="fa-sharp-duotone fa-solid fa-hand-pointer"></i>
+              <p>Busca y selecciona cualquier participante arriba (o haz clic sobre alguien en ingresos o zonas
+                geográficas) para consultar su frecuencia y última asistencia.</p>
+            </div>
+
+            <div id="analyticsPersonDetail" class="analytics-person-detail" style="display: none;">
+              <div class="person-detail-header">
+                <div class="person-detail-identity">
+                  <div class="selected-person-avatar"><i class="fa-sharp-duotone fa-solid fa-user"></i></div>
+                  <div>
+                    <h4 id="personDetailName">-</h4>
+                    <div class="person-detail-badges" id="personDetailBadges"></div>
+                  </div>
+                </div>
+                <div class="person-detail-contact" id="personDetailContact"></div>
+              </div>
+
+              <div class="person-detail-stats-grid">
+                <div class="person-stat-tile tile-last">
+                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-clock-rotate-left"></i> Última vez que
+                    vino</span>
+                  <strong class="tile-value" id="personDetailLastVisit">-</strong>
+                  <span class="tile-sub" id="personDetailLastRelative">-</span>
+                </div>
+
+                <div class="person-stat-tile tile-count">
+                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-repeat"></i> Veces que ha
+                    venido</span>
+                  <strong class="tile-value" id="personDetailCount">0</strong>
+                  <span class="tile-sub" id="personDetailCountNote">-</span>
+                </div>
+
+                <div class="person-stat-tile tile-first">
+                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-flag-checkered"></i> Primera visita
+                    registrada</span>
+                  <strong class="tile-value" id="personDetailFirstVisit">-</strong>
+                  <span class="tile-sub" id="personDetailGeoTag">-</span>
+                </div>
+              </div>
+
+              <div class="person-detail-meta-extra" id="personDetailMetaExtra"></div>
+
+              <div class="person-history-section">
+                <h5><i class="fa-sharp-duotone fa-solid fa-timeline"></i> Historial de Asistencias</h5>
+                <div id="personDetailHistory" class="person-history-list"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. INGRESOS DE PERSONAS NUEVAS POR FECHA / RANGO -->
         <article class="card analytics-card">
           <div class="card-header">
             <div class="card-title-group">
@@ -392,7 +474,8 @@
 
               <div class="analytics-date-controls">
                 <div class="analytics-date-group">
-                  <label for="analyticsSingleDate"><i class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Fecha específica</label>
+                  <label for="analyticsSingleDate"><i class="fa-sharp-duotone fa-solid fa-calendar-day"></i> Fecha
+                    específica</label>
                   <div class="analytics-input-inline">
                     <input type="date" id="analyticsSingleDate" class="form-control no-icon">
                     <button type="button" class="btn btn-outline btn-sm" id="btnApplySingleDate">Ver día</button>
@@ -453,81 +536,15 @@
             <!-- Listado de personas nuevas que entraron en el rango -->
             <div class="analytics-sublist-box">
               <div class="analytics-sublist-header">
-                <h4><i class="fa-sharp-duotone fa-solid fa-list-check"></i> Personas Nuevas Ingresadas en este Período (<span id="analyticsNewPeopleCount">0</span>)</h4>
+                <h4><i class="fa-sharp-duotone fa-solid fa-list-check"></i> Personas Nuevas Ingresadas en este Período
+                  (<span id="analyticsNewPeopleCount">0</span>)</h4>
               </div>
               <div id="analyticsNewPeopleList" class="analytics-people-grid"></div>
             </div>
           </div>
         </article>
 
-        <!-- 3. CONSULTA DE PERSONA: ÚLTIMA VISITA Y VECES QUE HA VENIDO -->
-        <article class="card analytics-card" id="analyticsPersonSection">
-          <div class="card-header">
-            <div class="card-title-group">
-              <h3><i class="fa-sharp-duotone fa-solid fa-user-clock"></i> Consulta por Participante</h3>
-              <p>Selecciona a una persona para ver su última visita y cuántas veces ha asistido</p>
-            </div>
-          </div>
 
-          <div class="card-body">
-            <div class="form-group">
-              <label class="form-label" for="analyticsPersonSearch">Seleccionar o Buscar Participante</label>
-              <div class="searchable-dropdown-wrapper">
-                <div class="input-wrapper">
-                  <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-magnifying-glass"></i></span>
-                  <input type="text" id="analyticsPersonSearch" class="form-control" placeholder="Escribe un nombre, teléfono o localidad..." autocomplete="off">
-                  <button type="button" id="analyticsPersonClearBtn" class="clear-search-btn" style="display: none;" title="Limpiar búsqueda"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="dropdown-results-container" id="analyticsPersonDropdown" style="display: none;"></div>
-              </div>
-            </div>
-
-            <div id="analyticsPersonEmptyHint" class="analytics-empty-hint">
-              <i class="fa-sharp-duotone fa-solid fa-hand-pointer"></i>
-              <p>Busca y selecciona cualquier participante arriba (o haz clic sobre alguien en ingresos o zonas geográficas) para consultar su frecuencia y última asistencia.</p>
-            </div>
-
-            <div id="analyticsPersonDetail" class="analytics-person-detail" style="display: none;">
-              <div class="person-detail-header">
-                <div class="person-detail-identity">
-                  <div class="selected-person-avatar"><i class="fa-sharp-duotone fa-solid fa-user"></i></div>
-                  <div>
-                    <h4 id="personDetailName">-</h4>
-                    <div class="person-detail-badges" id="personDetailBadges"></div>
-                  </div>
-                </div>
-                <div class="person-detail-contact" id="personDetailContact"></div>
-              </div>
-
-              <div class="person-detail-stats-grid">
-                <div class="person-stat-tile tile-last">
-                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-clock-rotate-left"></i> Última vez que vino</span>
-                  <strong class="tile-value" id="personDetailLastVisit">-</strong>
-                  <span class="tile-sub" id="personDetailLastRelative">-</span>
-                </div>
-
-                <div class="person-stat-tile tile-count">
-                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-repeat"></i> Veces que ha venido</span>
-                  <strong class="tile-value" id="personDetailCount">0</strong>
-                  <span class="tile-sub" id="personDetailCountNote">-</span>
-                </div>
-
-                <div class="person-stat-tile tile-first">
-                  <span class="tile-label"><i class="fa-sharp-duotone fa-solid fa-flag-checkered"></i> Primera visita registrada</span>
-                  <strong class="tile-value" id="personDetailFirstVisit">-</strong>
-                  <span class="tile-sub" id="personDetailGeoTag">-</span>
-                </div>
-              </div>
-
-              <div class="person-detail-meta-extra" id="personDetailMetaExtra"></div>
-
-              <div class="person-history-section">
-                <h5><i class="fa-sharp-duotone fa-solid fa-timeline"></i> Historial de Asistencias</h5>
-                <div id="personDetailHistory" class="person-history-list"></div>
-              </div>
-            </div>
-          </div>
-        </article>
 
       </div><!-- /#analyticsDashboard -->
 
@@ -864,7 +881,8 @@
             <p>Se requiere autorización de Administrador</p>
           </div>
         </div>
-        <button type="button" class="modal-close" id="closeDeleteModalBtn"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+        <button type="button" class="modal-close" id="closeDeleteModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="deleteAuthForm">
@@ -872,7 +890,8 @@
           <div class="delete-warning-banner">
             <p>¿Está seguro de que desea eliminar la asistencia de <strong id="deletePersonName"></strong>?</p>
             <small style="color: #991b1b; display: block; margin-top: 0.35rem;">
-              <i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Esta acción eliminará el registro de la lista de asistencias.
+              <i class="fa-sharp-duotone fa-solid fa-triangle-exclamation"></i> Esta acción eliminará el registro de la
+              lista de asistencias.
             </small>
           </div>
 
@@ -883,33 +902,22 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 0.75rem;">
-              <label class="form-label" for="deleteAdminUser">Usuario Administrador <span class="required">*</span></label>
+              <label class="form-label" for="deleteAdminUser">Usuario Administrador <span
+                  class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                <input
-                  type="text"
-                  id="deleteAdminUser"
-                  class="form-control"
-                  placeholder="Ej: Pastora"
-                  value="Pastora"
-                  required
-                  autocomplete="username"
-                >
+                <input type="text" id="deleteAdminUser" class="form-control" placeholder="Ej: Pastora" value="Pastora"
+                  required autocomplete="username">
               </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 0.25rem;">
-              <label class="form-label" for="deleteAdminPassword">Contraseña de Administrador <span class="required">*</span></label>
+              <label class="form-label" for="deleteAdminPassword">Contraseña de Administrador <span
+                  class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                <input
-                  type="password"
-                  id="deleteAdminPassword"
-                  class="form-control"
-                  placeholder="Introduce la contraseña"
-                  required
-                  autocomplete="current-password"
-                >
+                <input type="password" id="deleteAdminPassword" class="form-control"
+                  placeholder="Introduce la contraseña" required autocomplete="current-password">
               </div>
             </div>
 
@@ -942,7 +950,8 @@
             <p>Gestión y creación exclusiva de usuarios Admin</p>
           </div>
         </div>
-        <button type="button" class="modal-close" id="closeAdminModalBtn"><i class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
+        <button type="button" class="modal-close" id="closeAdminModalBtn"><i
+            class="fa-sharp-duotone fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="modal-body">
@@ -962,15 +971,8 @@
               <label class="form-label" for="loginAdminUser">Usuario Admin <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                <input
-                  type="text"
-                  id="loginAdminUser"
-                  class="form-control"
-                  placeholder="Ej: Pastora"
-                  value="Pastora"
-                  required
-                  autocomplete="username"
-                >
+                <input type="text" id="loginAdminUser" class="form-control" placeholder="Ej: Pastora" value="Pastora"
+                  required autocomplete="username">
               </div>
             </div>
 
@@ -978,14 +980,8 @@
               <label class="form-label" for="loginAdminPass">Contraseña <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                <input
-                  type="password"
-                  id="loginAdminPass"
-                  class="form-control"
-                  placeholder="Introduce contraseña"
-                  required
-                  autocomplete="current-password"
-                >
+                <input type="password" id="loginAdminPass" class="form-control" placeholder="Introduce contraseña"
+                  required autocomplete="current-password">
               </div>
             </div>
 
@@ -1005,10 +1001,12 @@
             <div class="admin-active-info">
               <i class="fa-sharp-duotone fa-solid fa-circle-check" style="color: #10b981;"></i>
               <span>Sesión activa: <strong id="currentAdminName">Pastora</strong></span>
-              <span class="badge-status badge-consolidado" style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Admin</span>
+              <span class="badge-status badge-consolidado"
+                style="font-size: 0.65rem; padding: 0.15rem 0.45rem;">Admin</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-              <button type="button" class="btn btn-sm btn-primary" id="btnAdminGoAnalytics" title="Abrir página de Analíticas">
+              <button type="button" class="btn btn-sm btn-primary" id="btnAdminGoAnalytics"
+                title="Abrir página de Analíticas">
                 <i class="fa-sharp-duotone fa-solid fa-chart-line"></i> Analíticas
               </button>
               <button type="button" class="btn btn-sm btn-outline" id="btnLogoutAdmin" title="Cerrar sesión de admin">
@@ -1036,17 +1034,12 @@
 
             <form id="createAdminForm">
               <div class="form-group">
-                <label class="form-label" for="newAdminUser">Nombre de Usuario Admin <span class="required">*</span></label>
+                <label class="form-label" for="newAdminUser">Nombre de Usuario Admin <span
+                    class="required">*</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-user-shield"></i></span>
-                  <input
-                    type="text"
-                    id="newAdminUser"
-                    class="form-control"
-                    placeholder="Ej: Pastor Jorge"
-                    required
-                    autocomplete="off"
-                  >
+                  <input type="text" id="newAdminUser" class="form-control" placeholder="Ej: Pastor Jorge" required
+                    autocomplete="off">
                 </div>
                 <small style="color: var(--text-muted); font-size: 0.72rem; margin-top: 0.25rem; display: block;">
                   Mínimo 3 caracteres. Sólo tendrá rol de Administrador.
@@ -1057,29 +1050,18 @@
                 <label class="form-label" for="newAdminPass">Contraseña <span class="required">*</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                  <input
-                    type="password"
-                    id="newAdminPass"
-                    class="form-control"
-                    placeholder="Mínimo 6 caracteres"
-                    required
-                    autocomplete="new-password"
-                  >
+                  <input type="password" id="newAdminPass" class="form-control" placeholder="Mínimo 6 caracteres"
+                    required autocomplete="new-password">
                 </div>
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="newAdminPassConfirm">Confirmar Contraseña <span class="required">*</span></label>
+                <label class="form-label" for="newAdminPassConfirm">Confirmar Contraseña <span
+                    class="required">*</span></label>
                 <div class="input-wrapper">
                   <span class="input-icon"><i class="fa-sharp-duotone fa-solid fa-key"></i></span>
-                  <input
-                    type="password"
-                    id="newAdminPassConfirm"
-                    class="form-control"
-                    placeholder="Repite la contraseña"
-                    required
-                    autocomplete="new-password"
-                  >
+                  <input type="password" id="newAdminPassConfirm" class="form-control"
+                    placeholder="Repite la contraseña" required autocomplete="new-password">
                 </div>
               </div>
 
